@@ -1,25 +1,25 @@
 //! General Purpose and Advanced Control Timers for
 //! the STM32 series of ARM Cortex Microcontrollers by ST Microelectronics.
-//! 
+//!
 //! The STM32 series have four general purpose timers (2-5), while some have
 //! an additional two advanced timers (1,8), and some have two basic timers (6,7).
 //! Some of the larger devices have additional general purpose timers (9-14).
-//! 
+//!
 //! @todo Add timer DMA burst settings
-//! 
+//!
 //! # Basic TIMER handling API
-//! 
+//!
 //! Enable the timer clock first. The timer mode sets the clock division ratio, the
 //! count alignment (edge or centred) and count direction. Finally enable the
 //! timer.
-//! 
+//!
 //! The timer output compare block produces a signal that can be configured for
 //! output to a pin or passed to other peripherals for use as a trigger. In all
 //! cases the output compare mode must be set to define how the output responds to
 //! a compare match, and the output must be enabled. If output to a pin is
 //! required, enable the appropriate GPIO clock and set the pin to alternate output
 //! mode.
-//! 
+//!
 //! Example: Timer 2 with 2x clock divide, edge aligned and up counting.
 //! ```
 //! rcc.periph_clock_enable(RCC_TIM2);
@@ -30,7 +30,7 @@
 //! tim2.set_period(1000);
 //! tim2.enable_counter();
 //! ```
-//! 
+//!
 //! Example: Timer 1 with PWM output, no clock divide and centre alignment. Set the
 //! Output Compare mode to PWM and enable the output of channel 1. Note that for
 //! the advanced timers the break functionality must be enabled before the signal
@@ -38,7 +38,7 @@
 //! addition to the normal output enable. Enable the alternate function clock (APB2
 //! only) and port A clock. Set ports A8 and A9 (timer 1 channel 1 compare outputs)
 //! to alternate function push-pull outputs where the PWM output will appear.
-//! 
+//!
 //! ```
 //! rcc.periph_clock_enable(rcc::en::GPIOA);
 //! rcc.periph_clock_enable(rcc::en::TIM1);
@@ -55,7 +55,7 @@
 //! tim1.set_period(1000);
 //! tim1.enable_counter();
 //! ```
-//! 
+//!
 //! Example: Timer 3 as a Quadrature encoder counting input from a motor or control
 //! knob.
 //! ```
@@ -68,10 +68,9 @@
 //! ...
 //! int motor_pos = tim3.get_count();
 //! ```
-//! 
+//!
 //! @todo input capture example
-//! 
-
+//!
 
 /*
  * Basic TIMER handling API.
@@ -81,20 +80,19 @@
  *                 TIM_CR1_CMS_CENTRE_3, TIM_CR1_DIR_UP);
  */
 
-use crate::device::{TIM1,
-                    TIM2};
+use crate::device::{TIM1, TIM2};
 
-use crate::device::tim1 as tim;
-/// Slave mode selection 
-pub use self::tim::smcr::SMSW as SlaveMode;
-/// Trigger selection
-pub use self::tim::smcr::TSW as TriggerSelection;
+/// Output Compare mode designators
+pub use self::tim::ccmr1_output::OC1MW as OcMode;
 /// Clock division
 pub use self::tim::cr1::CKDW as ClockDivision;
 /// Direction
 pub use self::tim::cr1::DIRW as Direction;
-/// Output Compare mode designators
-pub use self::tim::ccmr1_output::OC1MW as OcMode;
+/// Slave mode selection
+pub use self::tim::smcr::SMSW as SlaveMode;
+/// Trigger selection
+pub use self::tim::smcr::TSW as TriggerSelection;
+use crate::device::tim1 as tim;
 
 /* --- TIMx convenience defines -------------------------------------------- */
 
@@ -129,16 +127,16 @@ TIM_IC_DTF_DIV_y_N_x Division by y from the DTF, filter length x
 #[allow(non_camel_case_types)]
 #[derive(Clone, Copy, PartialEq)]
 pub enum IcFilter {
-    OFF            = 0b0000,
-    CK_INT_N_2     = 0b0001,
-    CK_INT_N_4     = 0b0010,
-    CK_INT_N_8     = 0b0011,
-    DTF_DIV_2_N_6  = 0b0100,
-    DTF_DIV_2_N_8  = 0b0101,
-    DTF_DIV_4_N_6  = 0b0110,
-    DTF_DIV_4_N_8  = 0b0111,
-    DTF_DIV_8_N_6  = 0b1000,
-    DTF_DIV_8_N_8  = 0b1001,
+    OFF = 0b0000,
+    CK_INT_N_2 = 0b0001,
+    CK_INT_N_4 = 0b0010,
+    CK_INT_N_8 = 0b0011,
+    DTF_DIV_2_N_6 = 0b0100,
+    DTF_DIV_2_N_8 = 0b0101,
+    DTF_DIV_4_N_6 = 0b0110,
+    DTF_DIV_4_N_8 = 0b0111,
+    DTF_DIV_8_N_6 = 0b1000,
+    DTF_DIV_8_N_8 = 0b1001,
     DTF_DIV_16_N_5 = 0b1010,
     DTF_DIV_16_N_6 = 0b1011,
     DTF_DIV_16_N_8 = 0b1100,
@@ -152,7 +150,7 @@ pub enum IcFilter {
 /// Input capture is done every x events
 #[derive(Clone, Copy, PartialEq)]
 pub enum IcPsc {
-    Off   = 0b00,
+    Off = 0b00,
     Psc2 = 0b01,
     Psc4 = 0b10,
     Psc8 = 0b11,
@@ -186,13 +184,12 @@ pub enum IcPol {
     FALLING,
 }
 
-
 #[derive(Clone, Copy, PartialEq)]
 pub enum EventGenerator {
     /// Break generation
-    BG   = 1 << 7,
+    BG = 1 << 7,
     /// Trigger generation
-    TG   = 1 << 6,
+    TG = 1 << 6,
     /// Capture/compare control update generation
     COMG = 1 << 5,
     /// Capture/compare 4 generation
@@ -204,7 +201,7 @@ pub enum EventGenerator {
     /// Capture/compare 1 generation
     CC1G = 1 << 1,
     /// Update generation
-    UG   = 1 << 0
+    UG = 1 << 0,
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -232,7 +229,7 @@ pub enum StatusFlag {
     /// Capture/compare 1 interrupt flag
     CC1IF = (1 << 1),
     /// Update interrupt flag
-    UIF = (1 << 0)
+    UIF = (1 << 0),
 }
 
 bitortype!(Irq, u32);
@@ -241,37 +238,36 @@ bitortype!(Irq, u32);
 pub mod irq {
     use super::Irq;
     /// Trigger DMA request enable
-    pub const TDE : Irq =  Irq(1 << 14);
+    pub const TDE: Irq = Irq(1 << 14);
     /// COM DMA request enable
-    pub const COMDE : Irq =  Irq(1 << 13);
+    pub const COMDE: Irq = Irq(1 << 13);
     /// Capture/Compare 4 DMA request enable
-    pub const CC4DE : Irq =  Irq(1 << 12);
+    pub const CC4DE: Irq = Irq(1 << 12);
     /// Capture/Compare 3 DMA request enable
-    pub const CC3DE : Irq =  Irq(1 << 11);
+    pub const CC3DE: Irq = Irq(1 << 11);
     /// Capture/Compare 2 DMA request enable
-    pub const CC2DE : Irq =  Irq(1 << 10);
+    pub const CC2DE: Irq = Irq(1 << 10);
     /// Capture/Compare 1 DMA request enable
-    pub const CC1DE : Irq =  Irq(1 << 9);
+    pub const CC1DE: Irq = Irq(1 << 9);
     /// Update DMA request enable
-    pub const UDE : Irq =  Irq(1 << 8);
+    pub const UDE: Irq = Irq(1 << 8);
     /// Break interrupt enable
-    pub const BIE : Irq =  Irq(1 << 7);
+    pub const BIE: Irq = Irq(1 << 7);
     /// Trigger interrupt enable
-    pub const TIE : Irq =  Irq(1 << 6);
+    pub const TIE: Irq = Irq(1 << 6);
     /// COM interrupt enable
-    pub const COMIE : Irq =  Irq(1 << 5);
+    pub const COMIE: Irq = Irq(1 << 5);
     /// Capture/compare 4 interrupt enable
-    pub const CC4IE : Irq =  Irq(1 << 4);
+    pub const CC4IE: Irq = Irq(1 << 4);
     /// Capture/compare 3 interrupt enable
-    pub const CC3IE : Irq =  Irq(1 << 3);
+    pub const CC3IE: Irq = Irq(1 << 3);
     /// Capture/compare 2 interrupt enable
-    pub const CC2IE : Irq =  Irq(1 << 2);
+    pub const CC2IE: Irq = Irq(1 << 2);
     /// Capture/compare 1 interrupt enable
-    pub const CC1IE : Irq =  Irq(1 << 1);
+    pub const CC1IE: Irq = Irq(1 << 1);
     /// Update interrupt enable
-    pub const UIE : Irq =  Irq(1 << 0);
+    pub const UIE: Irq = Irq(1 << 0);
 }
-
 
 bitortype!(IdleState, u32);
 
@@ -295,7 +291,6 @@ pub mod idle_state {
     pub const OIS_MASK: u32 = (0x7f << 8);
 }
 
-
 #[allow(non_camel_case_types)]
 #[derive(Clone, Copy, PartialEq)]
 pub enum MasterMode {
@@ -306,7 +301,7 @@ pub enum MasterMode {
     COMPARE_OC1REF = 4,
     COMPARE_OC2REF = 5,
     COMPARE_OC3REF = 6,
-    COMPARE_OC4REF = 7
+    COMPARE_OC4REF = 7,
 }
 
 #[allow(non_camel_case_types)]
@@ -315,16 +310,16 @@ pub enum Alignment {
     EDGE = 0,
     CENTER_1 = 1,
     CENTER_2 = 2,
-    CENTER_3 = 3
+    CENTER_3 = 3,
 }
 
 #[allow(non_camel_case_types)]
 #[derive(Clone, Copy, PartialEq)]
 pub enum BreakLock {
-    OFF     = 0,
+    OFF = 0,
     LEVEL_1 = 1,
     LEVEL_2 = 2,
-    LEVEL_3 = 3
+    LEVEL_3 = 3,
 }
 
 pub trait TimGeneralExt {
@@ -370,8 +365,7 @@ pub trait TimGeneralExt {
     /// * `clock_div: ClockDivision` - Clock Divider Ratio in bits 8,9.
     /// * `alignment: Alignment` - Alignment bits in 5,6
     /// * `direction: Direction` - Count direction in bit 4
-    fn set_mode(&self, clock_div: ClockDivision,
-            alignment: Alignment, direction: Direction);
+    fn set_mode(&self, clock_div: ClockDivision, alignment: Alignment, direction: Direction);
 
     /// Set Input Filter and Dead-time Clock Divider Ratio.
     ///
@@ -379,7 +373,7 @@ pub trait TimGeneralExt {
     /// in the advanced timers 1 and 8, by division from the timer clock.
     ///
     /// * `clock_div: ClockDivision` - Clock Divider Ratio in bits 8,9
-    fn set_clock_division(&self, clock_div : ClockDivision);
+    fn set_clock_division(&self, clock_div: ClockDivision);
 
     /// Enable Auto-Reload Buffering.
     ///
@@ -533,14 +527,13 @@ pub trait TimGeneralExt {
     /// * `oc_id: OcId` - OC channel designators
     ///     TIM_OCx where x=1..4, TIM_OCxN where x=1..3 (no action taken)
     /// * `oc_mode : OcMode` - OC mode designators.
-    fn set_oc_mode(&self, oc_id: OcId,
-               oc_mode : OcMode);
+    fn set_oc_mode(&self, oc_id: OcId, oc_mode: OcMode);
 
     /// Timer Enable the Output Compare Preload Register
     ///
     /// * `oc_id: OcId` - OC channel designators
     ///     TIM_OCx where x=1..4, TIM_OCxN where x=1..3 (no action taken)
-    fn enable_oc_preload(&self, oc_id : OcId);
+    fn enable_oc_preload(&self, oc_id: OcId);
 
     /// Timer Disable the Output Compare Preload Register
     ///
@@ -582,45 +575,45 @@ pub trait TimGeneralExt {
     ///
     /// * `count: u16` - Counter value.
     fn set_counter(&self, count: u16);
-/*
-    /// Set Input Capture Filter Parameters
-    ///
-    /// Set the input filter parameters for an input channel, specifying:
-    /// * the frequency of sampling from the Deadtime and Sampling clock
-    /// (@see @ref timer_set_clock_division)
-    /// * the number of events that must occur before a transition is considered
-    /// valid.
-    ///
-    /// * `ic: IcId` - Input Capture channel designator.
-    /// * `tim_ic_filter: IcFilter` - Input Capture Filter identifier.
-    fn ic_set_filter(&self, ic: IcId, tim_ic_filter: IcFilter);
+    /*
+        /// Set Input Capture Filter Parameters
+        ///
+        /// Set the input filter parameters for an input channel, specifying:
+        /// * the frequency of sampling from the Deadtime and Sampling clock
+        /// (@see @ref timer_set_clock_division)
+        /// * the number of events that must occur before a transition is considered
+        /// valid.
+        ///
+        /// * `ic: IcId` - Input Capture channel designator.
+        /// * `tim_ic_filter: IcFilter` - Input Capture Filter identifier.
+        fn ic_set_filter(&self, ic: IcId, tim_ic_filter: IcFilter);
 
-    /// Set Input Capture Prescaler
-    ///
-    /// Set the number of events between each capture.
-    ///
-    /// * `ic: IcId` - Input Capture channel designator.
-    /// * `psc: IcPsc` - Input Capture sample clock prescaler.
-    fn ic_set_prescaler(&self, ic: IcId, psc: IcPsc);
+        /// Set Input Capture Prescaler
+        ///
+        /// Set the number of events between each capture.
+        ///
+        /// * `ic: IcId` - Input Capture channel designator.
+        /// * `psc: IcPsc` - Input Capture sample clock prescaler.
+        fn ic_set_prescaler(&self, ic: IcId, psc: IcPsc);
 
-    /// Set Capture/Compare Channel Direction/Input
-    ///
-    /// The Capture/Compare channel is defined as output (compare) or input with the
-    /// input mapping specified:
-    /// * channel is configured as output
-    /// * channel is configured as input and mapped on corresponding input
-    /// * channel is configured as input and mapped on alternate input
-    /// (TI2 for channel 1, TI1 for channel 2, TI4 for channel 3, TI3 for channel 4)
-    /// * channel is configured as input and is mapped on TRC (requires an
-    /// internal trigger input selected through TS bit
-    ///
-    /// @note not all combinations of the input and channel are valid, see datasheets.
-    /// @note these parameters are writable only when the channel is off.
-    ///
-    /// * `ic: IcId` - Input Capture channel designator.
-    /// * `ic_in : IcInput` - Input Capture channel direction and source input.
-    fn ic_set_input(&self, ic: IcId, ic_in: IcInput);
-*/
+        /// Set Capture/Compare Channel Direction/Input
+        ///
+        /// The Capture/Compare channel is defined as output (compare) or input with the
+        /// input mapping specified:
+        /// * channel is configured as output
+        /// * channel is configured as input and mapped on corresponding input
+        /// * channel is configured as input and mapped on alternate input
+        /// (TI2 for channel 1, TI1 for channel 2, TI4 for channel 3, TI3 for channel 4)
+        /// * channel is configured as input and is mapped on TRC (requires an
+        /// internal trigger input selected through TS bit
+        ///
+        /// @note not all combinations of the input and channel are valid, see datasheets.
+        /// @note these parameters are writable only when the channel is off.
+        ///
+        /// * `ic: IcId` - Input Capture channel designator.
+        /// * `ic_in : IcInput` - Input Capture channel direction and source input.
+        fn ic_set_input(&self, ic: IcId, ic_in: IcInput);
+    */
     /// Enable Timer Input Capture
     ///
     /// * `ic : IcId` - Input Capture channel designator.
@@ -662,12 +655,10 @@ pub trait TimGeneralExt {
     ///
     /// * `trigger: TriggerSelection` - Slave trigger source
     fn slave_set_trigger(&self, trigger: TriggerSelection);
-
 }
 
 /// These settings are only valid for the advanced timers.
 pub trait TimAdvancedExt {
-
     /// Timer set Output Compare Idle State High
     ///
     /// @sa Similar function suitable for multiple OC idle state settings
@@ -676,7 +667,7 @@ pub trait TimAdvancedExt {
     /// * `oc_id : OcId` - OC channel designators
     ///     TIM_OCx where x=1..4, TIM_OCxN where x=1..3 (only for advanced
     ///     timers 1 and 8)
-    fn set_oc_idle_state_set(&self, oc_id : OcId);
+    fn set_oc_idle_state_set(&self, oc_id: OcId);
 
     /// Set the Value for the Timer Repetition Counter.
     ///
@@ -684,7 +675,7 @@ pub trait TimAdvancedExt {
     /// count cycles have been completed.
     ///
     /// * `value : u8` - Repetition values 0...0xFF.
-    fn set_repetition_counter(&self, value : u8);
+    fn set_repetition_counter(&self, value: u8);
 
     /// Timer Set Output Compare Idle State Low
     ///
@@ -694,7 +685,7 @@ pub trait TimAdvancedExt {
     /// * `oc_id : OcId` - OC channel designators
     ///     TIM_OCx where x=1..4, TIM_OCxN where x=1..3 (only for advanced
     ///     timers 1 and 8)
-    fn set_oc_idle_state_unset(&self, oc_id : OcId);
+    fn set_oc_idle_state_unset(&self, oc_id: OcId);
 
     /// Set Timer Output Idle States High.
     ///
@@ -705,7 +696,7 @@ pub trait TimAdvancedExt {
     /// * `outputs : IdleState` - Timer Output Idle State Controls @ref
     /// tim_x_cr2_ois. If several settings are to be made, use the logical OR of the
     /// output control values.
-    fn set_output_idle_state(&self, outputs : IdleState);
+    fn set_output_idle_state(&self, outputs: IdleState);
 
     /// Set Timer Output Idle States Low.
     ///
@@ -715,7 +706,7 @@ pub trait TimAdvancedExt {
     ///
     /// * `outputs : IdleState` - Timer Output Idle State Controls @ref
     /// tim_x_cr2_ois
-    fn reset_output_idle_state(&self, outputs : IdleState);
+    fn reset_output_idle_state(&self, outputs: IdleState);
 
     /// Enable Output in Break
     ///
@@ -738,7 +729,7 @@ pub trait TimAdvancedExt {
     /// Enables the automatic output feature of the Break function of an advanced
     /// timer so that the output is re-enabled at the next update event following a
     /// break event.
-    fn enable_break_automatic_output(&self) ;
+    fn enable_break_automatic_output(&self);
 
     /// Disable Automatic Output in Break
     ///
@@ -756,12 +747,12 @@ pub trait TimAdvancedExt {
     ///
     /// Sets the break function to activate when the break input becomes low.
     fn set_break_polarity_low(&self);
-    
+
     /// Enable Break
     ///
     /// Enables the break function of an advanced timer.
     fn enable_break(&self);
-    
+
     /// Disable Break
     ///
     /// Disables the break function of an advanced timer.
@@ -773,7 +764,7 @@ pub trait TimAdvancedExt {
     /// timer. When the master output is disabled the output is set to its
     /// inactive level as defined by the output polarity.
     fn set_enabled_off_state_in_idle_mode(&self);
-    
+
     /// Disable Off-State in Idle Mode
     ///
     /// Disables the off-state in idle mode for the break function of an advanced
@@ -787,7 +778,7 @@ pub trait TimAdvancedExt {
     /// timer reset has occurred.
     ///
     /// * `lock : BreakLock` - Lock specification
-    fn set_break_lock(&self, lock : BreakLock);
+    fn set_break_lock(&self, lock: BreakLock);
 
     /// Set Deadtime
     ///
@@ -801,7 +792,7 @@ pub trait TimAdvancedExt {
     /// @li Bits 7:5 = 111, deadtime = 16x(32+bits(5:0))
     ///
     /// * `deadtime : u8` - Deadtime count specification as defined above.
-    fn set_deadtime(&self, deadtime : u8);
+    fn set_deadtime(&self, deadtime: u8);
 }
 
 /// This setting is only valid for the advanced timer channels with complementary outputs.
@@ -830,7 +821,7 @@ pub trait TimComplementaryExt {
     ///
     /// The capture/compare control bits CCxE, CCxNE and OCxM preload is disabled.
     fn disable_preload_complementry_enable_bits(&self);
-    
+
     /// Enable Off-State in Run Mode
     ///
     /// Enables the off-state in run mode for the break function of an advanced
@@ -839,7 +830,7 @@ pub trait TimComplementaryExt {
     /// disabled while the complementary output is enabled, the output is set to its
     /// inactive level as defined by the output polarity.
     fn set_enabled_off_state_in_run_mode(&self);
-    
+
     /// Disable Off-State in Run Mode
     ///
     /// Disables the off-state in run mode for the break function of an advanced
@@ -847,25 +838,24 @@ pub trait TimComplementaryExt {
     /// if no complementary output is present. When the capture-compare output is
     /// disabled, the output is also disabled.
     fn set_disabled_off_state_in_run_mode(&self);
-
 }
 
 pub trait TimOutputExt {
     /*
-    /// Return Interrupt Source.
-    ///
-    /// Returns true if the specified interrupt flag (UIF, TIF or CCxIF, with BIF or
-    /// COMIF for advanced timers) was set and the interrupt was enabled. If the
-    /// specified flag is not an interrupt flag, the function returns false.
-    ///
-    /// @todo Timers 6-7, 9-14 have fewer interrupts, but invalid flags are not caught
-    /// here.
-    ///
-    /// * `flag : Irq` - Status register flag  @ref tim_sr_values.
-    ///
-    /// Returns `bool` flag set.
-    fn interrupt_source(&self, flag : Irq) -> bool;
-*/
+        /// Return Interrupt Source.
+        ///
+        /// Returns true if the specified interrupt flag (UIF, TIF or CCxIF, with BIF or
+        /// COMIF for advanced timers) was set and the interrupt was enabled. If the
+        /// specified flag is not an interrupt flag, the function returns false.
+        ///
+        /// @todo Timers 6-7, 9-14 have fewer interrupts, but invalid flags are not caught
+        /// here.
+        ///
+        /// * `flag : Irq` - Status register flag  @ref tim_sr_values.
+        ///
+        /// Returns `bool` flag set.
+        fn interrupt_source(&self, flag : Irq) -> bool;
+    */
     /// Timer Set the Output Polarity High
     ///
     /// The polarity of the channel output is set active high.
@@ -873,8 +863,8 @@ pub trait TimOutputExt {
     /// * `oc_id : OcId` - OC channel designators
     ///     TIM_OCx where x=1..4, TIM_OCxN where x=1..3  (only for advanced
     ///     timers 1 and 8)
-    fn set_oc_polarity_high(&self, oc_id : OcId);
-    
+    fn set_oc_polarity_high(&self, oc_id: OcId);
+
     /// Timer Set the Output Polarity Low
     ///
     /// The polarity of the channel output is set active low.
@@ -882,7 +872,7 @@ pub trait TimOutputExt {
     /// * `oc_id : OcId` - OC channel designators
     ///     TIM_OCx where x=1..4, TIM_OCxN where x=1..3 (only for advanced
     ///     timers 1 and 8)
-    fn set_oc_polarity_low(&self, oc_id : OcId);
+    fn set_oc_polarity_low(&self, oc_id: OcId);
 
     /// Timer Enable the Output Compare
     ///
@@ -891,1119 +881,867 @@ pub trait TimOutputExt {
     /// * `oc_id : OcId` - OC channel designators
     ///     TIM_OCx where x=1..4, TIM_OCxN where x=1..3 (only for advanced
     ///     timers 1 and 8)
-    fn enable_oc_output(&self, oc_id : OcId);
+    fn enable_oc_output(&self, oc_id: OcId);
 
     /// Timer Disable the Output Compare
-    /// 
+    ///
     /// The channel output compare functionality is disabled.
-    /// 
+    ///
     /// * `oc_id : OcId` - OC channel designators
     ///     TIM_OCx where x=1..4, TIM_OCxN where x=1..3 (only for advanced
     ///     timers 1 and 8)
-    fn disable_oc_output(&self, oc_id : OcId);
-
+    fn disable_oc_output(&self, oc_id: OcId);
 }
-
 
 /// Implements TimGeneralExt
 macro_rules! impl_timgeneral {
-    ($target:ty) => (
-    
-    impl TimGeneralExt for $target {
-        fn enable_irq(&self, irq : Irq) {
-            self.dier     .modify(|r,w| unsafe { w
-                .bits( r.bits() | irq.value() )
-            });
-        }
-
-        fn disable_irq(&self, irq : Irq) {
-            self.dier     .modify(|r,w| unsafe { w
-                .bits( r.bits() & !irq.value() )
-            });
-        }
-
-        fn get_flag(&self, flag : StatusFlag) -> bool {
-            ( self.sr.read().bits() & (flag as u32) ) != 0
-        }
-
-        fn clear_flag(&self, flag : StatusFlag) {
-            /* All defined bits are rc_w0 */
-            self.sr       .write(|w| unsafe { w
-                .bits( !(flag as u32) )
-            });
-        //TIM_SR(timer_peripheral) = ~flag;
-        }
-
-        fn set_mode(&self, clock_div : ClockDivision,
-                alignment : Alignment, direction : Direction) {
-            self.cr1       .modify(|_,w| unsafe { w
-                .cms()    .bits( alignment as u8 )
-                .ckd()    .variant( clock_div )
-                .dir()    .variant( direction )
-            });
-        }
-
-        fn set_clock_division(&self, clock_div : ClockDivision) {
-            self.cr1       .modify(|_,w| w
-                .ckd()    .variant( clock_div )
-            );
-        }
-
-        fn enable_preload(&self) {
-            self.cr1       .modify(|_,w| w
-                .arpe()    .set_bit()
-            );
-        }
-
-        fn disable_preload(&self) {
-            self.cr1       .modify(|_,w| w
-                .arpe()    .clear_bit()
-            );
-        }
-
-        fn set_alignment(&self, alignment : Alignment) {
-            self.cr1       .modify(|_,w| unsafe { w
-                .cms()    .bits( alignment as u8 )
-            });
-        }
-
-        fn direction_up(&self) {
-            self.cr1       .modify(|_,w| w
-                .dir()     .up()
-            );
-        }
-
-        fn direction_down(&self) {
-            self.cr1       .modify(|_,w| w
-                .dir()     .down()
-            );
-        }
-
-        fn one_shot_mode(&self) {
-            self.cr1       .modify(|_,w| w
-                .opm()     .one_pulse()
-            );
-        }
-
-        fn continuous_mode(&self) {
-            self.cr1       .modify(|_,w| w
-                .opm()     .continuous()
-            );
-        }
-
-        fn update_on_any(&self) {
-            self.cr1       .modify(|_,w| w
-                .urs()     .clear_bit()
-            );
-        }
-
-        fn update_on_overflow(&self) {
-            self.cr1       .modify(|_,w| w
-                .urs()     .set_bit()
-            );
-        }
-
-        fn enable_update_event(&self) {
-            self.cr1       .modify(|_,w| w
-                .udis()     .clear_bit()
-            );
-        }
-
-        fn disable_update_event(&self) {
-            self.cr1       .modify(|_,w| w
-                .udis()    .set_bit()
-            );
-        }
-
-        fn enable_counter(&self) {
-            self.cr1       .modify(|_,w| w
-                .cen()     .enabled()
-            );
-        }
-
-        fn disable_counter(&self) {
-            self.cr1       .modify(|_,w| w
-                .cen()     .disabled()
-            );
-        }
-
-        fn set_master_mode(&self, mode : MasterMode) {
-            self.cr2        .modify(|_,w| unsafe { w
-                .mms()     .bits(mode as u8)
-            });
-        }
-
-        fn set_dma_on_compare_event(&self) {
-            self.cr2       .modify(|_,w| w
-                .ccds()    .clear_bit()
-            );
-        }
-
-        fn set_dma_on_update_event(&self) {
-            self.cr2       .modify(|_,w| w
-                .ccds()    .set_bit()
-            );
-        }
-
-        fn set_prescaler(&self, value : u16) {
-            self.psc       .write(|w| unsafe { w
-                .bits ( value as u32 )
-            });
-        }
-
-        fn set_period(&self, period : u16) {
-            self.arr       .write(|w| unsafe { w
-                .bits ( period as u32 )
-            });
-        }
-
-        fn enable_oc_clear(&self, oc_id : OcId) {
-            match oc_id {
-                OcId::OC1 => {
-                    self.ccmr1_output    .modify(|_,w| w
-                        .oc1ce()    .set_bit()
-                    );
-                },
-                OcId::OC2 => {
-                    self.ccmr1_output    .modify(|_,w| w
-                        .oc2ce()    .set_bit()
-                    );
-                },
-                OcId::OC3 => {
-                    self.ccmr2_output    .modify(|_,w| w
-                        .oc3ce()    .set_bit()
-                    );
-                },
-                OcId::OC4 => {
-                    self.ccmr2_output    .modify(|_,w| w
-                        .oc4ce()    .set_bit() // TYPO in Ref.Manual
-                    );
-                }
-            /* Ignoring as oc clear enable only applies to the whole
-             * channel.
-             */
-                _ => unreachable!()
+    ($target:ty) => {
+        impl TimGeneralExt for $target {
+            fn enable_irq(&self, irq: Irq) {
+                self.dier
+                    .modify(|r, w| unsafe { w.bits(r.bits() | irq.value()) });
             }
-        }
 
-        fn disable_oc_clear(&self, oc_id : OcId) {
-            match oc_id {
-                OcId::OC1 => {
-                    self.ccmr1_output    .modify(|_,w| w
-                        .oc1ce()    .clear_bit()
-                    );
-                },
-                OcId::OC2 => {
-                    self.ccmr1_output    .modify(|_,w| w
-                        .oc2ce()    .clear_bit()
-                    );
-                },
-                OcId::OC3 => {
-                    self.ccmr2_output    .modify(|_,w| w
-                        .oc3ce()    .clear_bit()
-                    );
-                },
-                OcId::OC4 => {
-                    self.ccmr2_output    .modify(|_,w| w
-                        .oc4ce()    .clear_bit() // TYPO in Ref.Manual
-                    );
-                },
-            /* Ignoring as oc clear enable only applies to the whole
-             * channel.
-             */
-                _ => unreachable!()
+            fn disable_irq(&self, irq: Irq) {
+                self.dier
+                    .modify(|r, w| unsafe { w.bits(r.bits() & !irq.value()) });
             }
-        }
 
-        fn set_oc_fast_mode(&self, oc_id : OcId) {
-            match oc_id {
-                OcId::OC1 => {
-                    self.ccmr1_output    .modify(|_,w| w
-                        .oc1fe()    .set_bit()
-                    );
-                },
-                OcId::OC2 => {
-                    self.ccmr1_output    .modify(|_,w| w
-                        .oc2fe()    .set_bit()
-                    );
-                },
-                OcId::OC3 => {
-                    self.ccmr2_output    .modify(|_,w| w
-                        .oc3fe()    .set_bit()
-                    );
-                },
-                OcId::OC4 => {
-                    self.ccmr2_output    .modify(|_,w| w
-                        .oc4fe()    .set_bit()
-                    );
-                }
-            /* Ignoring as fast enable only applies to the whole channel. */
-                _ => unreachable!()
+            fn get_flag(&self, flag: StatusFlag) -> bool {
+                (self.sr.read().bits() & (flag as u32)) != 0
             }
-        }
 
-        fn set_oc_slow_mode(&self, oc_id : OcId) {
-            match oc_id {
-                OcId::OC1 => {
-                    self.ccmr1_output    .modify(|_,w| w
-                        .oc1fe()    .clear_bit()
-                    );
-                },
-                OcId::OC2 => {
-                    self.ccmr1_output    .modify(|_,w| w
-                        .oc2fe()    .clear_bit()
-                    );
-                },
-                OcId::OC3 => {
-                    self.ccmr2_output    .modify(|_,w| w
-                        .oc3fe()    .clear_bit()
-                    );
-                },
-                OcId::OC4 => {
-                    self.ccmr2_output    .modify(|_,w| w
-                        .oc4fe()    .clear_bit()
-                    );
-                },
-            /* Ignoring as this option applies to the whole channel. */
-                _ => unreachable!()
+            fn clear_flag(&self, flag: StatusFlag) {
+                /* All defined bits are rc_w0 */
+                self.sr.write(|w| unsafe { w.bits(!(flag as u32)) });
+                //TIM_SR(timer_peripheral) = ~flag;
             }
-        }
 
-        fn set_oc_mode(&self, oc_id : OcId,
-                   oc_mode : OcMode) {
-            match oc_id {
-                OcId::OC1 => { unsafe {
-                    self.ccmr1_output    .modify(|_,w| w
-                        .cc1s()    .bits(0b00)
-                        //.oc1m()    .variant(oc_mode)
-                        .oc1m()    .bits(oc_mode as u8)
-                    );
-                } },
-                OcId::OC2 => { unsafe {
-                    self.ccmr1_output    .modify(|_,w| w
-                        .cc2s()    .bits(0b00)
-                        //.oc2m()    .variant(oc_mode)
-                        .oc2m()    .bits(oc_mode as u8)
-                    );
-                } },
-                OcId::OC3 => { unsafe {
-                    self.ccmr2_output    .modify(|_,w| w
-                        .cc3s()    .bits(0b00)
-                        //.oc3m()    .variant(oc_mode)
-                        .oc3m()    .bits(oc_mode as u8)
-                    );
-                } },
-                OcId::OC4 => { unsafe {
-                    self.ccmr2_output    .modify(|_,w| w
-                        .cc4s()    .bits(0b00)
-                        //.oc4m()    .variant(oc_mode)
-                        .oc4m()    .bits(oc_mode as u8)
-                    );
-                } },
-                /* Ignoring as this option applies to the whole channel. */
-                _ => unreachable!()
+            fn set_mode(
+                &self,
+                clock_div: ClockDivision,
+                alignment: Alignment,
+                direction: Direction,
+            ) {
+                self.cr1.modify(|_, w| unsafe {
+                    w.cms()
+                        .bits(alignment as u8)
+                        .ckd()
+                        .variant(clock_div)
+                        .dir()
+                        .variant(direction)
+                });
             }
-        }
 
-        fn enable_oc_preload(&self, oc_id : OcId) {
-            match oc_id {
-                OcId::OC1 => {
-                    self.ccmr1_output    .modify(|_,w| w
-                        .oc1pe()    .set_bit()
-                    );
-                },
-                OcId::OC2 => {
-                    self.ccmr1_output    .modify(|_,w| w
-                        .oc2pe()    .set_bit()
-                    );
-                },
-                OcId::OC3 => {
-                    self.ccmr2_output    .modify(|_,w| w
-                        .oc3pe()    .set_bit()
-                    );
-                },
-                OcId::OC4 => {
-                    self.ccmr2_output    .modify(|_,w| w
-                        .oc4pe()    .set_bit()
-                    );
-                },
-            /* Ignoring as this option applies to the whole channel. */
-                _ => unreachable!()
+            fn set_clock_division(&self, clock_div: ClockDivision) {
+                self.cr1.modify(|_, w| w.ckd().variant(clock_div));
             }
-        }
 
-        fn disable_oc_preload(&self, oc_id : OcId) {
-            match oc_id {
-                OcId::OC1 => {
-                    self.ccmr1_output    .modify(|_,w| w
-                        .oc1pe()    .clear_bit()
-                    );
-                },
-                OcId::OC2 => {
-                    self.ccmr1_output    .modify(|_,w| w
-                        .oc2pe()    .clear_bit()
-                    );
-                },
-                OcId::OC3 => {
-                    self.ccmr2_output    .modify(|_,w| w
-                        .oc3pe()     .clear_bit()
-                    );
-                },
-                OcId::OC4 => {
-                    self.ccmr2_output    .modify(|_,w| w
-                        .oc4pe()    .clear_bit()
-                    );
-                },
-            /* Ignoring as this option applies to the whole channel. */
-                _ => unreachable!()
+            fn enable_preload(&self) {
+                self.cr1.modify(|_, w| w.arpe().set_bit());
             }
-        }
 
-        fn set_oc_value(&self, oc_id : OcId, value : u16) {
-            match oc_id {
-                OcId::OC1 => {
-                    self.ccr1    .write(|w| unsafe { w
-                        .ccr()  .bits( value )
-                    });
-                },
-                OcId::OC2 => {
-                    self.ccr2    .write(|w| unsafe{ w
-                        .ccr()  .bits( value )
-                    });
-                },
-                OcId::OC3 => {
-                    self.ccr3    .write(|w| unsafe{ w
-                        .ccr()  .bits( value )
-                    });
-                },
-                OcId::OC4 => {
-                    self.ccr4    .write(|w| unsafe{ w
-                        .ccr()  .bits( value )
-                    });
-                },
-                /* Ignoring as this option applies to the whole channel. */
-                _ => {}
+            fn disable_preload(&self) {
+                self.cr1.modify(|_, w| w.arpe().clear_bit());
             }
-        }
 
-        /*fn generate_event(&self, event : EventGenerator) {
-            self.egr            .modify(|r,w| unsafe { w
-                .bits( r.bits() | ( event as u32 ))
-            });
-        //TIM_EGR(timer_peripheral) |= event;
-        }*/
-        
-        fn generate_event(&self, event : EventGenerator) {
-            self.egr        .write(|w| unsafe { w
-                .bits( event as u32 )
-            });
-        }
-
-        fn timer_get_counter(&self) -> u16 {
-            self.cnt  .read()  .bits() as u16
-        }
-
-        fn set_counter(&self, count : u16) {
-            self.cnt       .write(|w| unsafe { w
-                .bits(count as u32)
-            });
-        }
-/*
-        fn ic_set_filter(&self, ic : IcId, tim_ic_filter : IcFilter) {
-            match ic {
-                IcId::IC1 => { unsafe {
-                    self.ccmr1.input    .modify(|_,w| w
-                        .ic1f()         .bits( tim_ic_filter as u8 )
-                    );
-                } },
-                IcId::IC2 => { unsafe {
-                    self.ccmr1.input    .modify(|_,w| w
-                        .ic2f()         .bits( tim_ic_filter as u8 )
-                    );
-                } },
-                IcId::IC3 => { unsafe {
-                    self.ccmr2.input    .modify(|_,w| w
-                        .ic3f()         .bits( tim_ic_filter as u8 )
-                    );
-                } },
-                IcId::IC4 => { unsafe {
-                    self.ccmr2.input    .modify(|_,w| w
-                        .ic4f()         .bits( tim_ic_filter as u8 )
-                    );
-                } }
+            fn set_alignment(&self, alignment: Alignment) {
+                self.cr1
+                    .modify(|_, w| unsafe { w.cms().bits(alignment as u8) });
             }
-        }
 
-        fn ic_set_prescaler(&self, ic : IcId, psc : IcPsc) {
-            match ic {
-                IcId::IC1 => { unsafe {
-                    self.ccmr1.input    .modify(|_,w| w
-                        .ic1psc()         .bits( psc as u8 )
-                    );
-                } },
-                IcId::IC2 => { unsafe {
-                    self.ccmr1.input    .modify(|_,w| w
-                        .ic2psc()         .bits( psc as u8 )
-                    );
-                } },
-                IcId::IC3 => { unsafe {
-                    self.ccmr2.input    .modify(|_,w| w
-                        .ic3psc()         .bits( psc as u8 )
-                    );
-                } },
-                IcId::IC4 => { unsafe {
-                    self.ccmr2.input    .modify(|_,w| w
-                        .ic4psc()         .bits( psc as u8 )
-                    );
-                } }
+            fn direction_up(&self) {
+                self.cr1.modify(|_, w| w.dir().up());
             }
-        }
 
-        fn ic_set_input(&self, ic : IcId, ic_in : IcInput) {
-            let mut ic_in = (ic_in as u8) & 3;
+            fn direction_down(&self) {
+                self.cr1.modify(|_, w| w.dir().down());
+            }
 
-            match ic {
-                /* Input select bits are flipped for these combinations */
-                IcId::IC2 | IcId::IC4 => {
-                    if (ic_in == IcInput::IN_TI1 as u8 ) ||
-                        (ic_in == IcInput::IN_TI2 as u8) {
-                        ic_in ^= 3;
+            fn one_shot_mode(&self) {
+                self.cr1.modify(|_, w| w.opm().one_pulse());
+            }
+
+            fn continuous_mode(&self) {
+                self.cr1.modify(|_, w| w.opm().continuous());
+            }
+
+            fn update_on_any(&self) {
+                self.cr1.modify(|_, w| w.urs().clear_bit());
+            }
+
+            fn update_on_overflow(&self) {
+                self.cr1.modify(|_, w| w.urs().set_bit());
+            }
+
+            fn enable_update_event(&self) {
+                self.cr1.modify(|_, w| w.udis().clear_bit());
+            }
+
+            fn disable_update_event(&self) {
+                self.cr1.modify(|_, w| w.udis().set_bit());
+            }
+
+            fn enable_counter(&self) {
+                self.cr1.modify(|_, w| w.cen().enabled());
+            }
+
+            fn disable_counter(&self) {
+                self.cr1.modify(|_, w| w.cen().disabled());
+            }
+
+            fn set_master_mode(&self, mode: MasterMode) {
+                self.cr2.modify(|_, w| unsafe { w.mms().bits(mode as u8) });
+            }
+
+            fn set_dma_on_compare_event(&self) {
+                self.cr2.modify(|_, w| w.ccds().clear_bit());
+            }
+
+            fn set_dma_on_update_event(&self) {
+                self.cr2.modify(|_, w| w.ccds().set_bit());
+            }
+
+            fn set_prescaler(&self, value: u16) {
+                self.psc.write(|w| unsafe { w.bits(value as u32) });
+            }
+
+            fn set_period(&self, period: u16) {
+                self.arr.write(|w| unsafe { w.bits(period as u32) });
+            }
+
+            fn enable_oc_clear(&self, oc_id: OcId) {
+                match oc_id {
+                    OcId::OC1 => {
+                        self.ccmr1_output.modify(|_, w| w.oc1ce().set_bit());
                     }
-                },
-                _ => {}
+                    OcId::OC2 => {
+                        self.ccmr1_output.modify(|_, w| w.oc2ce().set_bit());
+                    }
+                    OcId::OC3 => {
+                        self.ccmr2_output.modify(|_, w| w.oc3ce().set_bit());
+                    }
+                    OcId::OC4 => {
+                        self.ccmr2_output.modify(
+                            |_, w| w.oc4ce().set_bit(), // TYPO in Ref.Manual
+                        );
+                    }
+                    /* Ignoring as oc clear enable only applies to the whole
+                     * channel.
+                     */
+                    _ => unreachable!(),
+                }
+            }
+
+            fn disable_oc_clear(&self, oc_id: OcId) {
+                match oc_id {
+                    OcId::OC1 => {
+                        self.ccmr1_output.modify(|_, w| w.oc1ce().clear_bit());
+                    }
+                    OcId::OC2 => {
+                        self.ccmr1_output.modify(|_, w| w.oc2ce().clear_bit());
+                    }
+                    OcId::OC3 => {
+                        self.ccmr2_output.modify(|_, w| w.oc3ce().clear_bit());
+                    }
+                    OcId::OC4 => {
+                        self.ccmr2_output.modify(
+                            |_, w| w.oc4ce().clear_bit(), // TYPO in Ref.Manual
+                        );
+                    }
+                    /* Ignoring as oc clear enable only applies to the whole
+                     * channel.
+                     */
+                    _ => unreachable!(),
+                }
+            }
+
+            fn set_oc_fast_mode(&self, oc_id: OcId) {
+                match oc_id {
+                    OcId::OC1 => {
+                        self.ccmr1_output.modify(|_, w| w.oc1fe().set_bit());
+                    }
+                    OcId::OC2 => {
+                        self.ccmr1_output.modify(|_, w| w.oc2fe().set_bit());
+                    }
+                    OcId::OC3 => {
+                        self.ccmr2_output.modify(|_, w| w.oc3fe().set_bit());
+                    }
+                    OcId::OC4 => {
+                        self.ccmr2_output.modify(|_, w| w.oc4fe().set_bit());
+                    }
+                    /* Ignoring as fast enable only applies to the whole channel. */
+                    _ => unreachable!(),
+                }
+            }
+
+            fn set_oc_slow_mode(&self, oc_id: OcId) {
+                match oc_id {
+                    OcId::OC1 => {
+                        self.ccmr1_output.modify(|_, w| w.oc1fe().clear_bit());
+                    }
+                    OcId::OC2 => {
+                        self.ccmr1_output.modify(|_, w| w.oc2fe().clear_bit());
+                    }
+                    OcId::OC3 => {
+                        self.ccmr2_output.modify(|_, w| w.oc3fe().clear_bit());
+                    }
+                    OcId::OC4 => {
+                        self.ccmr2_output.modify(|_, w| w.oc4fe().clear_bit());
+                    }
+                    /* Ignoring as this option applies to the whole channel. */
+                    _ => unreachable!(),
+                }
+            }
+
+            fn set_oc_mode(&self, oc_id: OcId, oc_mode: OcMode) {
+                match oc_id {
+                    OcId::OC1 => {
+                        unsafe {
+                            self.ccmr1_output.modify(|_, w| {
+                                w.cc1s()
+                                    .bits(0b00)
+                                    //.oc1m()    .variant(oc_mode)
+                                    .oc1m()
+                                    .bits(oc_mode as u8)
+                            });
+                        }
+                    }
+                    OcId::OC2 => {
+                        unsafe {
+                            self.ccmr1_output.modify(|_, w| {
+                                w.cc2s()
+                                    .bits(0b00)
+                                    //.oc2m()    .variant(oc_mode)
+                                    .oc2m()
+                                    .bits(oc_mode as u8)
+                            });
+                        }
+                    }
+                    OcId::OC3 => {
+                        unsafe {
+                            self.ccmr2_output.modify(|_, w| {
+                                w.cc3s()
+                                    .bits(0b00)
+                                    //.oc3m()    .variant(oc_mode)
+                                    .oc3m()
+                                    .bits(oc_mode as u8)
+                            });
+                        }
+                    }
+                    OcId::OC4 => {
+                        unsafe {
+                            self.ccmr2_output.modify(|_, w| {
+                                w.cc4s()
+                                    .bits(0b00)
+                                    //.oc4m()    .variant(oc_mode)
+                                    .oc4m()
+                                    .bits(oc_mode as u8)
+                            });
+                        }
+                    }
+                    /* Ignoring as this option applies to the whole channel. */
+                    _ => unreachable!(),
+                }
+            }
+
+            fn enable_oc_preload(&self, oc_id: OcId) {
+                match oc_id {
+                    OcId::OC1 => {
+                        self.ccmr1_output.modify(|_, w| w.oc1pe().set_bit());
+                    }
+                    OcId::OC2 => {
+                        self.ccmr1_output.modify(|_, w| w.oc2pe().set_bit());
+                    }
+                    OcId::OC3 => {
+                        self.ccmr2_output.modify(|_, w| w.oc3pe().set_bit());
+                    }
+                    OcId::OC4 => {
+                        self.ccmr2_output.modify(|_, w| w.oc4pe().set_bit());
+                    }
+                    /* Ignoring as this option applies to the whole channel. */
+                    _ => unreachable!(),
+                }
+            }
+
+            fn disable_oc_preload(&self, oc_id: OcId) {
+                match oc_id {
+                    OcId::OC1 => {
+                        self.ccmr1_output.modify(|_, w| w.oc1pe().clear_bit());
+                    }
+                    OcId::OC2 => {
+                        self.ccmr1_output.modify(|_, w| w.oc2pe().clear_bit());
+                    }
+                    OcId::OC3 => {
+                        self.ccmr2_output.modify(|_, w| w.oc3pe().clear_bit());
+                    }
+                    OcId::OC4 => {
+                        self.ccmr2_output.modify(|_, w| w.oc4pe().clear_bit());
+                    }
+                    /* Ignoring as this option applies to the whole channel. */
+                    _ => unreachable!(),
+                }
+            }
+
+            fn set_oc_value(&self, oc_id: OcId, value: u16) {
+                match oc_id {
+                    OcId::OC1 => {
+                        self.ccr1.write(|w| unsafe { w.ccr().bits(value) });
+                    }
+                    OcId::OC2 => {
+                        self.ccr2.write(|w| unsafe { w.ccr().bits(value) });
+                    }
+                    OcId::OC3 => {
+                        self.ccr3.write(|w| unsafe { w.ccr().bits(value) });
+                    }
+                    OcId::OC4 => {
+                        self.ccr4.write(|w| unsafe { w.ccr().bits(value) });
+                    }
+                    /* Ignoring as this option applies to the whole channel. */
+                    _ => {}
+                }
+            }
+
+            /*fn generate_event(&self, event : EventGenerator) {
+                self.egr            .modify(|r,w| unsafe { w
+                    .bits( r.bits() | ( event as u32 ))
+                });
+            //TIM_EGR(timer_peripheral) |= event;
+            }*/
+
+            fn generate_event(&self, event: EventGenerator) {
+                self.egr.write(|w| unsafe { w.bits(event as u32) });
+            }
+
+            fn timer_get_counter(&self) -> u16 {
+                self.cnt.read().bits() as u16
+            }
+
+            fn set_counter(&self, count: u16) {
+                self.cnt.write(|w| unsafe { w.bits(count as u32) });
+            }
+            /*
+            fn ic_set_filter(&self, ic : IcId, tim_ic_filter : IcFilter) {
+                match ic {
+                    IcId::IC1 => { unsafe {
+                        self.ccmr1.input    .modify(|_,w| w
+                            .ic1f()         .bits( tim_ic_filter as u8 )
+                        );
+                    } },
+                    IcId::IC2 => { unsafe {
+                        self.ccmr1.input    .modify(|_,w| w
+                            .ic2f()         .bits( tim_ic_filter as u8 )
+                        );
+                    } },
+                    IcId::IC3 => { unsafe {
+                        self.ccmr2.input    .modify(|_,w| w
+                            .ic3f()         .bits( tim_ic_filter as u8 )
+                        );
+                    } },
+                    IcId::IC4 => { unsafe {
+                        self.ccmr2.input    .modify(|_,w| w
+                            .ic4f()         .bits( tim_ic_filter as u8 )
+                        );
+                    } }
+                }
+            }
+
+            fn ic_set_prescaler(&self, ic : IcId, psc : IcPsc) {
+                match ic {
+                    IcId::IC1 => { unsafe {
+                        self.ccmr1.input    .modify(|_,w| w
+                            .ic1psc()         .bits( psc as u8 )
+                        );
+                    } },
+                    IcId::IC2 => { unsafe {
+                        self.ccmr1.input    .modify(|_,w| w
+                            .ic2psc()         .bits( psc as u8 )
+                        );
+                    } },
+                    IcId::IC3 => { unsafe {
+                        self.ccmr2.input    .modify(|_,w| w
+                            .ic3psc()         .bits( psc as u8 )
+                        );
+                    } },
+                    IcId::IC4 => { unsafe {
+                        self.ccmr2.input    .modify(|_,w| w
+                            .ic4psc()         .bits( psc as u8 )
+                        );
+                    } }
+                }
+            }
+
+            fn ic_set_input(&self, ic : IcId, ic_in : IcInput) {
+                let mut ic_in = (ic_in as u8) & 3;
+
+                match ic {
+                    /* Input select bits are flipped for these combinations */
+            IcId::IC2 | IcId::IC4 => {
+            if (ic_in == IcInput::IN_TI1 as u8 ) ||
+            (ic_in == IcInput::IN_TI2 as u8) {
+            ic_in ^= 3;
+            }
+            },
+            _ => {}
             }
 
             match ic {
-                IcId::IC1 => { unsafe {
-                    self.ccmr1.input    .modify(|_,w| w
-                        .cc1s()         .bits( ic_in )
-                    );
-                } },
-                IcId::IC2 => { unsafe {
-                    self.ccmr1.input    .modify(|_,w| w
-                        .cc2s()         .bits( ic_in )
-                    );
-                } },
-                IcId::IC3 => { unsafe {
-                    self.ccmr2.input    .modify(|_,w| w
-                        .cc3s()         .bits( ic_in )
-                    );
-                } },
-                IcId::IC4 => { unsafe {
-                    self.ccmr2.input    .modify(|_,w| w
-                        .cc4s()         .bits( ic_in )
-                    );
-                } }
+            IcId::IC1 => { unsafe {
+            self.ccmr1.input    .modify(|_,w| w
+            .cc1s()         .bits( ic_in )
+            );
+            } },
+            IcId::IC2 => { unsafe {
+            self.ccmr1.input    .modify(|_,w| w
+            .cc2s()         .bits( ic_in )
+            );
+            } },
+            IcId::IC3 => { unsafe {
+            self.ccmr2.input    .modify(|_,w| w
+            .cc3s()         .bits( ic_in )
+            );
+            } },
+            IcId::IC4 => { unsafe {
+            self.ccmr2.input    .modify(|_,w| w
+            .cc4s()         .bits( ic_in )
+            );
+            } }
+            }
+            }
+            */
+            fn ic_enable(&self, ic: IcId) {
+                self.ccer
+                    .modify(|r, w| unsafe { w.bits(r.bits() | (1 << ((ic as u32) * 4))) });
+            }
+
+            fn ic_disable(&self, ic: IcId) {
+                self.ccer
+                    .modify(|r, w| unsafe { w.bits(r.bits() & !(1 << ((ic as u32) * 4))) });
+            }
+
+            fn slave_set_filter(&self, flt: IcFilter) {
+                self.smcr.modify(|_, w| unsafe { w.etps().bits(flt as u8) });
+            }
+
+            fn slave_set_prescaler(&self, psc: IcPsc) {
+                self.smcr.modify(|_, w| unsafe { w.etps().bits(psc as u8) });
+            }
+
+            fn slave_set_polarity(&self, pol: EtPol) {
+                let bit = match pol {
+                    EtPol::RISING => false,
+                    EtPol::FALLING => true,
+                };
+                self.smcr.modify(|_, w| w.etp().bit(bit));
+            }
+
+            fn slave_set_mode(&self, mode: SlaveMode) {
+                self.smcr.modify(|_, w| w.sms().variant(mode));
+            }
+
+            fn slave_set_trigger(&self, trigger: TriggerSelection) {
+                self.smcr.modify(|_, w| w.ts().variant(trigger));
             }
         }
-*/
-        fn ic_enable(&self, ic: IcId) {
-            self.ccer       .modify(|r,w| unsafe { w
-                .bits( r.bits() | (1 << ((ic as u32) * 4)) )
-            });
-        }
-
-        fn ic_disable(&self, ic: IcId) {
-            self.ccer       .modify(|r,w| unsafe { w
-                .bits( r.bits() & !(1 << ((ic as u32) * 4)) )
-            });
-        }
-
-        fn slave_set_filter(&self, flt: IcFilter) {
-            self.smcr       .modify(|_,w| unsafe { w
-                .etps()     .bits(flt as u8)
-            });
-        }
-
-        fn slave_set_prescaler(&self, psc: IcPsc) {
-            self.smcr       .modify(|_,w| unsafe { w
-                .etps()     .bits(psc as u8)
-            });
-        }
-
-        fn slave_set_polarity(&self, pol: EtPol) {
-            let bit = match pol {
-                EtPol::RISING => false,
-                EtPol::FALLING => true
-            };
-            self.smcr       .modify(|_,w| w
-                .etp()      .bit(bit)
-            );
-        }
-
-        fn slave_set_mode(&self, mode: SlaveMode) {
-            self.smcr       .modify(|_,w| w
-                .sms()      .variant( mode )
-            );
-        }
-
-        fn slave_set_trigger(&self, trigger: TriggerSelection) {
-            self.smcr       .modify(|_,w| w
-                .ts()       .variant(trigger)
-            );
-        }
-    }
-    )
+    };
 }
-
 
 /// Implements TimOutputExt for Not Advanced Timers
 macro_rules! impl_timoutputnotadvanced {
-    ($target:ty) => (
-    impl TimOutputExt for $target {
-/*
-        fn interrupt_source(&self, flag : Irq) -> bool {
-            // flag not set or interrupt disabled or not an interrupt source
-            !(((self.sr.read().bits() &
-                self.dier.read().bits() & flag.value()) == 0) ||
-                (flag.value() > (StatusFlag::BIF as u32)))
-        }
-*/
-        fn set_oc_polarity_high(&self, oc_id : OcId) {
-            match oc_id {
-                OcId::OC1 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc1p()    .clear_bit()
-                    );
+    ($target:ty) => {
+        impl TimOutputExt for $target {
+            /*
+                    fn interrupt_source(&self, flag : Irq) -> bool {
+                        // flag not set or interrupt disabled or not an interrupt source
+                        !(((self.sr.read().bits() &
+                            self.dier.read().bits() & flag.value()) == 0) ||
+                            (flag.value() > (StatusFlag::BIF as u32)))
+                    }
+            */
+            fn set_oc_polarity_high(&self, oc_id: OcId) {
+                match oc_id {
+                    OcId::OC1 => {
+                        self.ccer.modify(|_, w| w.cc1p().clear_bit());
+                    }
+                    OcId::OC2 => {
+                        self.ccer.modify(|_, w| w.cc2p().clear_bit());
+                    }
+                    OcId::OC3 => {
+                        self.ccer.modify(|_, w| w.cc3p().clear_bit());
+                    }
+                    OcId::OC4 => {
+                        self.ccer.modify(|_, w| w.cc4p().clear_bit());
+                    }
+                    /* Ignoring as this option applies to TIM1 and TIM8 only. */
+                    _ => unreachable!(),
                 }
-                OcId::OC2 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc2p()    .clear_bit()
-                    );
-                }
-                OcId::OC3 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc3p()    .clear_bit()
-                    );
-                }
-                OcId::OC4 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc4p()    .clear_bit()
-                    );
-                }
-            /* Ignoring as this option applies to TIM1 and TIM8 only. */
-                _ => unreachable!()
             }
-        }
-        
-        fn set_oc_polarity_low(&self, oc_id : OcId) {
-            match oc_id {
-                OcId::OC1 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc1p()    .set_bit()
-                    );
-                }
-                OcId::OC2 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc2p()    .set_bit()
-                    );
-                }
-                OcId::OC3 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc3p()    .set_bit()
-                    );
-                }
-                OcId::OC4 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc4p()    .set_bit()
-                    );
-                }
-            /* Ignoring as this option applies to TIM1 and TIM8 only. */
-                _ => unreachable!()
-            }
-        }
 
-        fn enable_oc_output(&self, oc_id : OcId) {
-            match oc_id {
-                OcId::OC1 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc1e()    .set_bit()
-                    );
+            fn set_oc_polarity_low(&self, oc_id: OcId) {
+                match oc_id {
+                    OcId::OC1 => {
+                        self.ccer.modify(|_, w| w.cc1p().set_bit());
+                    }
+                    OcId::OC2 => {
+                        self.ccer.modify(|_, w| w.cc2p().set_bit());
+                    }
+                    OcId::OC3 => {
+                        self.ccer.modify(|_, w| w.cc3p().set_bit());
+                    }
+                    OcId::OC4 => {
+                        self.ccer.modify(|_, w| w.cc4p().set_bit());
+                    }
+                    /* Ignoring as this option applies to TIM1 and TIM8 only. */
+                    _ => unreachable!(),
                 }
-                OcId::OC2 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc2e()    .set_bit()
-                    );
-                }
-                OcId::OC3 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc3e()    .set_bit()
-                    );
-                }
-                OcId::OC4 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc4e()    .set_bit()
-                    );
-                }
-            /* Ignoring as this option applies to TIM1 and TIM8 only. */
-                _ => unreachable!()
             }
-        }
 
-        fn disable_oc_output(&self, oc_id : OcId) {
-            match oc_id {
-                OcId::OC1 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc1e()    .clear_bit()
-                    );
+            fn enable_oc_output(&self, oc_id: OcId) {
+                match oc_id {
+                    OcId::OC1 => {
+                        self.ccer.modify(|_, w| w.cc1e().set_bit());
+                    }
+                    OcId::OC2 => {
+                        self.ccer.modify(|_, w| w.cc2e().set_bit());
+                    }
+                    OcId::OC3 => {
+                        self.ccer.modify(|_, w| w.cc3e().set_bit());
+                    }
+                    OcId::OC4 => {
+                        self.ccer.modify(|_, w| w.cc4e().set_bit());
+                    }
+                    /* Ignoring as this option applies to TIM1 and TIM8 only. */
+                    _ => unreachable!(),
                 }
-                OcId::OC2 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc2e()    .clear_bit()
-                    );
+            }
+
+            fn disable_oc_output(&self, oc_id: OcId) {
+                match oc_id {
+                    OcId::OC1 => {
+                        self.ccer.modify(|_, w| w.cc1e().clear_bit());
+                    }
+                    OcId::OC2 => {
+                        self.ccer.modify(|_, w| w.cc2e().clear_bit());
+                    }
+                    OcId::OC3 => {
+                        self.ccer.modify(|_, w| w.cc3e().clear_bit());
+                    }
+                    OcId::OC4 => {
+                        self.ccer.modify(|_, w| w.cc4e().clear_bit());
+                    }
+                    /* Ignoring as this option applies to TIM1 and TIM8 only. */
+                    _ => unreachable!(),
                 }
-                OcId::OC3 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc3e()    .clear_bit()
-                    );
-                }
-                OcId::OC4 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc4e()    .clear_bit()
-                    );
-                }
-            /* Ignoring as this option applies to TIM1 and TIM8 only. */
-                _ => unreachable!()
             }
         }
-    }
-    )
+    };
 }
 
 /// Implements TimOutputExt for Advanced Timers
 macro_rules! impl_timoutputadvanced {
-    ($target:ty) => (
-    impl TimOutputExt for $target {
-        /*
-        fn interrupt_source(&self, flag : u32) -> bool {
-    // Only an interrupt source for advanced timers
-    #if ADVANCED_TIMERS
-        if ((flag == TIM_SR_BIF) || (flag == TIM_SR_COMIF)) {
-            return TIMER_IS_ADVANCED(timer_peripheral);
-        }
-    #endif
-    }
-    */
-        fn set_oc_polarity_low(&self, oc_id : OcId) {
-            match oc_id {
-                OcId::OC1 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc1p()    .set_bit()
-                    );
+    ($target:ty) => {
+        impl TimOutputExt for $target {
+            /*
+                fn interrupt_source(&self, flag : u32) -> bool {
+            // Only an interrupt source for advanced timers
+            #if ADVANCED_TIMERS
+                if ((flag == TIM_SR_BIF) || (flag == TIM_SR_COMIF)) {
+                    return TIMER_IS_ADVANCED(timer_peripheral);
                 }
-                OcId::OC2 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc2p()    .set_bit()
-                    );
-                }
-                OcId::OC3 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc3p()     .set_bit()
-                    );
-                }
-                OcId::OC4 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc4p()    .set_bit()
-                    );
-                }
-                OcId::OC1N => {
-                    self.ccer    .modify(|_,w| w
-                        .cc1np()   .set_bit()
-                    );
-                }
-                OcId::OC2N => {
-                    self.ccer    .modify(|_,w| w
-                        .cc2np()   .set_bit()
-                    );
-                }
-                OcId::OC3N => {
-                    self.ccer    .modify(|_,w| w
-                        .cc3np()    .set_bit()
-                    );
+            #endif
+            }
+            */
+            fn set_oc_polarity_low(&self, oc_id: OcId) {
+                match oc_id {
+                    OcId::OC1 => {
+                        self.ccer.modify(|_, w| w.cc1p().set_bit());
+                    }
+                    OcId::OC2 => {
+                        self.ccer.modify(|_, w| w.cc2p().set_bit());
+                    }
+                    OcId::OC3 => {
+                        self.ccer.modify(|_, w| w.cc3p().set_bit());
+                    }
+                    OcId::OC4 => {
+                        self.ccer.modify(|_, w| w.cc4p().set_bit());
+                    }
+                    OcId::OC1N => {
+                        self.ccer.modify(|_, w| w.cc1np().set_bit());
+                    }
+                    OcId::OC2N => {
+                        self.ccer.modify(|_, w| w.cc2np().set_bit());
+                    }
+                    OcId::OC3N => {
+                        self.ccer.modify(|_, w| w.cc3np().set_bit());
+                    }
                 }
             }
-        }
-        
-        fn enable_oc_output(&self, oc_id : OcId) {
-            match oc_id {
-                OcId::OC1 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc1e()    .set_bit()
-                    );
-                }
-                OcId::OC2 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc2e()    .set_bit()
-                    );
-                }
-                OcId::OC3 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc3e()     .set_bit()
-                    );
-                }
-                OcId::OC4 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc4e()    .set_bit()
-                    );
-                }
-                OcId::OC1N => {
-                    self.ccer    .modify(|_,w| w
-                        .cc1ne()    .set_bit()
-                    );
-                }
-                OcId::OC2N => {
-                    self.ccer    .modify(|_,w| w
-                        .cc2ne()    .set_bit()
-                    );
-                }
-                OcId::OC3N => {
-                    self.ccer    .modify(|_,w| w
-                        .cc3ne()    .set_bit()
-                    );
-                }
-            }
-        }
 
-        fn disable_oc_output(&self, oc_id : OcId) {
-            match oc_id {
-                OcId::OC1 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc1e()    .clear_bit()
-                    );
+            fn enable_oc_output(&self, oc_id: OcId) {
+                match oc_id {
+                    OcId::OC1 => {
+                        self.ccer.modify(|_, w| w.cc1e().set_bit());
+                    }
+                    OcId::OC2 => {
+                        self.ccer.modify(|_, w| w.cc2e().set_bit());
+                    }
+                    OcId::OC3 => {
+                        self.ccer.modify(|_, w| w.cc3e().set_bit());
+                    }
+                    OcId::OC4 => {
+                        self.ccer.modify(|_, w| w.cc4e().set_bit());
+                    }
+                    OcId::OC1N => {
+                        self.ccer.modify(|_, w| w.cc1ne().set_bit());
+                    }
+                    OcId::OC2N => {
+                        self.ccer.modify(|_, w| w.cc2ne().set_bit());
+                    }
+                    OcId::OC3N => {
+                        self.ccer.modify(|_, w| w.cc3ne().set_bit());
+                    }
                 }
-                OcId::OC2 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc2e()    .clear_bit()
-                    );
+            }
+
+            fn disable_oc_output(&self, oc_id: OcId) {
+                match oc_id {
+                    OcId::OC1 => {
+                        self.ccer.modify(|_, w| w.cc1e().clear_bit());
+                    }
+                    OcId::OC2 => {
+                        self.ccer.modify(|_, w| w.cc2e().clear_bit());
+                    }
+                    OcId::OC3 => {
+                        self.ccer.modify(|_, w| w.cc3e().clear_bit());
+                    }
+                    OcId::OC4 => {
+                        self.ccer.modify(|_, w| w.cc4e().clear_bit());
+                    }
+                    OcId::OC1N => {
+                        self.ccer.modify(|_, w| w.cc1ne().clear_bit());
+                    }
+                    OcId::OC2N => {
+                        self.ccer.modify(|_, w| w.cc2ne().clear_bit());
+                    }
+                    OcId::OC3N => {
+                        self.ccer.modify(|_, w| w.cc3ne().clear_bit());
+                    }
                 }
-                OcId::OC3 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc3e()     .clear_bit()
-                    );
-                }
-                OcId::OC4 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc4e()    .clear_bit()
-                    );
-                }
-                OcId::OC1N => {
-                    self.ccer    .modify(|_,w| w
-                        .cc1ne()    .clear_bit()
-                    );
-                }
-                OcId::OC2N => {
-                    self.ccer    .modify(|_,w| w
-                        .cc2ne()    .clear_bit()
-                    );
-                }
-                OcId::OC3N => {
-                    self.ccer    .modify(|_,w| w
-                        .cc3ne()    .clear_bit()
-                    );
+            }
+
+            fn set_oc_polarity_high(&self, oc_id: OcId) {
+                match oc_id {
+                    OcId::OC1 => {
+                        self.ccer.modify(|_, w| w.cc1p().clear_bit());
+                    }
+                    OcId::OC2 => {
+                        self.ccer.modify(|_, w| w.cc2p().clear_bit());
+                    }
+                    OcId::OC3 => {
+                        self.ccer.modify(|_, w| w.cc3p().clear_bit());
+                    }
+                    OcId::OC4 => {
+                        self.ccer.modify(|_, w| w.cc4p().clear_bit());
+                    }
+                    OcId::OC1N => {
+                        self.ccer.modify(|_, w| w.cc1np().clear_bit());
+                    }
+                    OcId::OC2N => {
+                        self.ccer.modify(|_, w| w.cc2np().clear_bit());
+                    }
+                    OcId::OC3N => {
+                        self.ccer.modify(|_, w| w.cc3np().clear_bit());
+                    }
                 }
             }
         }
-        
-        fn set_oc_polarity_high(&self, oc_id : OcId) {
-            match oc_id {
-                OcId::OC1 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc1p()    .clear_bit()
-                    );
-                }
-                OcId::OC2 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc2p()    .clear_bit()
-                    );
-                }
-                OcId::OC3 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc3p()     .clear_bit()
-                    );
-                }
-                OcId::OC4 => {
-                    self.ccer    .modify(|_,w| w
-                        .cc4p()    .clear_bit()
-                    );
-                }
-                OcId::OC1N => {
-                    self.ccer    .modify(|_,w| w
-                        .cc1np()    .clear_bit()
-                    );
-                }
-                OcId::OC2N => {
-                    self.ccer    .modify(|_,w| w
-                        .cc2np()    .clear_bit()
-                    );
-                }
-                OcId::OC3N => {
-                    self.ccer    .modify(|_,w| w
-                        .cc3np()    .clear_bit()
-                    );
-                }
-            }
-        }
-    }
-    )
+    };
 }
-
 
 /// Implements TimAdvancedExt
 macro_rules! impl_timadvanced {
-    ($target:ty) => (
-    impl TimAdvancedExt for $target { // for Advanced
-        fn set_oc_idle_state_set(&self, oc_id : OcId) {
-            match oc_id {
-                OcId::OC1 => {
-                    self.cr2    .modify(|_,w| w
-                        .ois1()    .set_bit()
-                    );
-                }
-                OcId::OC2 => {
-                    self.cr2    .modify(|_,w| w
-                        .ois2()    .set_bit()
-                    );
-                }
-                OcId::OC3 => {
-                    self.cr2    .modify(|_,w| w
-                        .ois3()     .set_bit()
-                    );
-                }
-                OcId::OC4 => {
-                    self.cr2    .modify(|_,w| w
-                        .ois4()    .set_bit()
-                    );
-                }
-                OcId::OC1N => {
-                    self.cr2    .modify(|_,w| w
-                        .ois1n()    .set_bit()
-                    );
-                }
-                OcId::OC2N => {
-                    self.cr2    .modify(|_,w| w
-                        .ois2n()    .set_bit()
-                    );
-                }
-                OcId::OC3N => {
-                    self.cr2    .modify(|_,w| w
-                        .ois3n()    .set_bit()
-                    );
+    ($target:ty) => {
+        impl TimAdvancedExt for $target {
+            // for Advanced
+            fn set_oc_idle_state_set(&self, oc_id: OcId) {
+                match oc_id {
+                    OcId::OC1 => {
+                        self.cr2.modify(|_, w| w.ois1().set_bit());
+                    }
+                    OcId::OC2 => {
+                        self.cr2.modify(|_, w| w.ois2().set_bit());
+                    }
+                    OcId::OC3 => {
+                        self.cr2.modify(|_, w| w.ois3().set_bit());
+                    }
+                    OcId::OC4 => {
+                        self.cr2.modify(|_, w| w.ois4().set_bit());
+                    }
+                    OcId::OC1N => {
+                        self.cr2.modify(|_, w| w.ois1n().set_bit());
+                    }
+                    OcId::OC2N => {
+                        self.cr2.modify(|_, w| w.ois2n().set_bit());
+                    }
+                    OcId::OC3N => {
+                        self.cr2.modify(|_, w| w.ois3n().set_bit());
+                    }
                 }
             }
-        }
-        
-        fn set_repetition_counter(&self, value : u8) {
-            self.rcr      .write(|w| unsafe { w
-                .bits ( value as u32 )
-            });
-        }
-        
-        fn set_oc_idle_state_unset(&self, oc_id : OcId) {
-            match oc_id {
-                OcId::OC1 => {
-                    self.cr2    .modify(|_,w| w
-                        .ois1()    .clear_bit()
-                    );
-                }
-                OcId::OC2 => {
-                    self.cr2    .modify(|_,w| w
-                        .ois2()    .clear_bit()
-                    );
-                }
-                OcId::OC3 => {
-                    self.cr2    .modify(|_,w| w
-                        .ois3()     .clear_bit()
-                    );
-                }
-                OcId::OC4 => {
-                    self.cr2    .modify(|_,w| w
-                        .ois4()    .clear_bit()
-                    );
-                }
-                OcId::OC1N => {
-                    self.cr2    .modify(|_,w| w
-                        .ois1n()    .clear_bit()
-                    );
-                }
-                OcId::OC2N => {
-                    self.cr2    .modify(|_,w| w
-                        .ois2n()    .clear_bit()
-                    );
-                }
-                OcId::OC3N => {
-                    self.cr2    .modify(|_,w| w
-                        .ois3n()    .clear_bit()
-                    );
+
+            fn set_repetition_counter(&self, value: u8) {
+                self.rcr.write(|w| unsafe { w.bits(value as u32) });
+            }
+
+            fn set_oc_idle_state_unset(&self, oc_id: OcId) {
+                match oc_id {
+                    OcId::OC1 => {
+                        self.cr2.modify(|_, w| w.ois1().clear_bit());
+                    }
+                    OcId::OC2 => {
+                        self.cr2.modify(|_, w| w.ois2().clear_bit());
+                    }
+                    OcId::OC3 => {
+                        self.cr2.modify(|_, w| w.ois3().clear_bit());
+                    }
+                    OcId::OC4 => {
+                        self.cr2.modify(|_, w| w.ois4().clear_bit());
+                    }
+                    OcId::OC1N => {
+                        self.cr2.modify(|_, w| w.ois1n().clear_bit());
+                    }
+                    OcId::OC2N => {
+                        self.cr2.modify(|_, w| w.ois2n().clear_bit());
+                    }
+                    OcId::OC3N => {
+                        self.cr2.modify(|_, w| w.ois3n().clear_bit());
+                    }
                 }
             }
-        }
-        
-        fn set_output_idle_state(&self, outputs : IdleState) {
-            self.cr2   .modify(|r,w| unsafe { w
-                .bits( r.bits() | (outputs.value() & idle_state::OIS_MASK) )
-            });
-        }
 
-        fn reset_output_idle_state(&self, outputs : IdleState) {
-            self.cr2   .modify(|r,w| unsafe { w
-                .bits( r.bits() & !(outputs.value() & idle_state::OIS_MASK) )
-            });
-        }
+            fn set_output_idle_state(&self, outputs: IdleState) {
+                self.cr2.modify(|r, w| unsafe {
+                    w.bits(r.bits() | (outputs.value() & idle_state::OIS_MASK))
+                });
+            }
 
-        fn enable_break_main_output(&self) {
-            self.bdtr       .modify(|_,w| w
-                .moe()      .set_bit()
-            );
-        }
+            fn reset_output_idle_state(&self, outputs: IdleState) {
+                self.cr2.modify(|r, w| unsafe {
+                    w.bits(r.bits() & !(outputs.value() & idle_state::OIS_MASK))
+                });
+            }
 
-        fn disable_break_main_output(&self) {
-            self.bdtr       .modify(|_,w| w
-                .moe()      .clear_bit()
-            );
-        }
+            fn enable_break_main_output(&self) {
+                self.bdtr.modify(|_, w| w.moe().set_bit());
+            }
 
-        fn enable_break_automatic_output(&self) {
-            self.bdtr       .modify(|_,w| w
-                .aoe()      .set_bit()
-            );
-        }
+            fn disable_break_main_output(&self) {
+                self.bdtr.modify(|_, w| w.moe().clear_bit());
+            }
 
-        fn disable_break_automatic_output(&self) {
-            self.bdtr       .modify(|_,w| w
-                .aoe()      .clear_bit()
-            );
-        }
+            fn enable_break_automatic_output(&self) {
+                self.bdtr.modify(|_, w| w.aoe().set_bit());
+            }
 
-        fn set_break_polarity_high(&self) {
-            self.bdtr       .modify(|_,w| w
-                .bkp()      .set_bit()
-            );
-        }
+            fn disable_break_automatic_output(&self) {
+                self.bdtr.modify(|_, w| w.aoe().clear_bit());
+            }
 
-        fn set_break_polarity_low(&self) {
-            self.bdtr       .modify(|_,w| w
-                .bkp()      .clear_bit()
-            );
-        }
-        
-        fn enable_break(&self) {
-            self.bdtr       .modify(|_,w| w
-                .bke()      .set_bit()
-            );
-        }
-        
-        fn disable_break(&self) {
-            self.bdtr       .modify(|_,w| w
-                .bke()      .clear_bit()
-            );
-        }
+            fn set_break_polarity_high(&self) {
+                self.bdtr.modify(|_, w| w.bkp().set_bit());
+            }
 
-        fn set_enabled_off_state_in_idle_mode(&self) {
-            self.bdtr       .modify(|_,w| w
-                .ossi()      .set_bit()
-            );
-        }
-        
-        fn set_disabled_off_state_in_idle_mode(&self) {
-            self.bdtr       .modify(|_,w| w
-                .ossi()      .clear_bit()
-            );
-        }
+            fn set_break_polarity_low(&self) {
+                self.bdtr.modify(|_, w| w.bkp().clear_bit());
+            }
 
-        fn set_break_lock(&self, lock : BreakLock) {
-            self.bdtr       .modify(|_,w| unsafe { w
-                .lock()     .bits( lock as u8 )
-            });
-        }
+            fn enable_break(&self) {
+                self.bdtr.modify(|_, w| w.bke().set_bit());
+            }
 
-        fn set_deadtime(&self, deadtime : u8) {
-            self.bdtr       .modify(|_,w| unsafe { w
-                .dtg()     .bits( deadtime )
-            });
+            fn disable_break(&self) {
+                self.bdtr.modify(|_, w| w.bke().clear_bit());
+            }
+
+            fn set_enabled_off_state_in_idle_mode(&self) {
+                self.bdtr.modify(|_, w| w.ossi().set_bit());
+            }
+
+            fn set_disabled_off_state_in_idle_mode(&self) {
+                self.bdtr.modify(|_, w| w.ossi().clear_bit());
+            }
+
+            fn set_break_lock(&self, lock: BreakLock) {
+                self.bdtr
+                    .modify(|_, w| unsafe { w.lock().bits(lock as u8) });
+            }
+
+            fn set_deadtime(&self, deadtime: u8) {
+                self.bdtr.modify(|_, w| unsafe { w.dtg().bits(deadtime) });
+            }
         }
-    }
-    )
+    };
 }
-
 
 /// Implements TimComplementaryExt for Advanced Timers
 macro_rules! impl_timcomplementary {
-    ($target:ty) => (
-    
-    impl TimComplementaryExt for $target {
-        fn enable_compare_control_update_on_trigger(&self) {
-            self.cr2       .modify(|_,w| w
-                .ccus()    .set_bit()
-            );
-        }
-        
-        fn disable_compare_control_update_on_trigger(&self) {
-            self.cr2       .modify(|_,w| w
-                .ccus()    .clear_bit()
-            );
-        }
-        
-        fn enable_preload_complementry_enable_bits(&self) {
-            self.cr2       .modify(|_,w| w
-                .ccpc()    .set_bit()
-            );
-        }
-        
-        fn disable_preload_complementry_enable_bits(&self) {
-            self.cr2       .modify(|_,w| w
-                .ccpc()    .clear_bit()
-            );
-        }
+    ($target:ty) => {
+        impl TimComplementaryExt for $target {
+            fn enable_compare_control_update_on_trigger(&self) {
+                self.cr2.modify(|_, w| w.ccus().set_bit());
+            }
 
-        fn set_enabled_off_state_in_run_mode(&self) {
-            self.bdtr       .modify(|_,w| w
-                .ossr()      .set_bit()
-            );
+            fn disable_compare_control_update_on_trigger(&self) {
+                self.cr2.modify(|_, w| w.ccus().clear_bit());
+            }
+
+            fn enable_preload_complementry_enable_bits(&self) {
+                self.cr2.modify(|_, w| w.ccpc().set_bit());
+            }
+
+            fn disable_preload_complementry_enable_bits(&self) {
+                self.cr2.modify(|_, w| w.ccpc().clear_bit());
+            }
+
+            fn set_enabled_off_state_in_run_mode(&self) {
+                self.bdtr.modify(|_, w| w.ossr().set_bit());
+            }
+
+            fn set_disabled_off_state_in_run_mode(&self) {
+                self.bdtr.modify(|_, w| w.ossr().clear_bit());
+            }
         }
-        
-        fn set_disabled_off_state_in_run_mode(&self) {
-            self.bdtr       .modify(|_,w| w
-                .ossr()     .clear_bit()
-            );
-        }
-    }
-    )
+    };
 }
 
-
-
 pub trait Timerf1 {
-    
     /// Set Input Polarity
     ///
     /// * `ic : IcId` - Input Capture channel designator.
     /// * `pol : IcPol` - Input Capture polarity.
-    fn ic_set_polarity(&self, ic : IcId, pol : IcPol);
+    fn ic_set_polarity(&self, ic: IcId, pol: IcPol);
 }
 
 macro_rules! impl_timf1 {
-    ($target:ty) => (
-    impl Timerf1 for $target {
-        fn ic_set_polarity(&self, ic : IcId, pol : IcPol) {
-            match pol {
-                IcPol::FALLING => {
-                    self.ccer       .modify(|r,w| unsafe { w
-                        .bits( r.bits() | (2 << ((ic as u32) * 4)) )
-                    });
-                },
-                IcPol::RISING => {
-                    self.ccer       .modify(|r,w| unsafe { w
-                        .bits( r.bits() & !(2 << ((ic as u32) * 4)) )
-                    });
+    ($target:ty) => {
+        impl Timerf1 for $target {
+            fn ic_set_polarity(&self, ic: IcId, pol: IcPol) {
+                match pol {
+                    IcPol::FALLING => {
+                        self.ccer
+                            .modify(|r, w| unsafe { w.bits(r.bits() | (2 << ((ic as u32) * 4))) });
+                    }
+                    IcPol::RISING => {
+                        self.ccer
+                            .modify(|r, w| unsafe { w.bits(r.bits() & !(2 << ((ic as u32) * 4))) });
+                    }
                 }
             }
         }
-    }
-    )
+    };
 }
 
 pub trait Ocm3Tim1 {
-
     /// Set Timer 1 Input to XOR of Three Channels.
     ///
     /// The first timer capture input is formed from the XOR of the first three timer
@@ -2014,24 +1752,16 @@ pub trait Ocm3Tim1 {
     ///
     /// The first timer capture input is taken from the timer input channel 1 only.
     fn set_ti1_ch1(&self);
-
 }
 
 impl Ocm3Tim1 for TIM1 {
     fn set_ti1_ch123_xor(&self) {
-        self.cr2       .modify(|_,w| w
-            .ti1s()      .set_bit()
-        );
+        self.cr2.modify(|_, w| w.ti1s().set_bit());
     }
     fn set_ti1_ch1(&self) {
-        self.cr2       .modify(|_,w| w
-            .ti1s()     .clear_bit()
-        );
+        self.cr2.modify(|_, w| w.ti1s().clear_bit());
     }
 }
-
-
-
 
 /* TODO Timer DMA burst */
 

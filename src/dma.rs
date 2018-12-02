@@ -9,7 +9,7 @@
 //! any combination including memory to memory. Circular mode transfers are
 //! also supported in transfers involving a peripheral. An arbiter is provided
 //! to resolve priority DMA requests. Transfers can be made with 8, 16 or 32 bit
-//! words. 
+//! words.
 
 /// Channel priority level
 pub use crate::device::dma1::ch::ccr::PLW as Priority;
@@ -17,7 +17,6 @@ pub use crate::device::dma1::ch::ccr::PLW as Priority;
 ///
 /// Peripheral size
 pub use crate::device::dma1::ch::ccr::PSIZEW as DataSize;
-
 
 bitortype!(Irq, u8);
 
@@ -28,13 +27,13 @@ bitortype!(Irq, u8);
 pub mod irq {
     use super::Irq;
     /** Transfer Error Interrupt Flag */
-    pub const TEIF: Irq =  Irq(1 << 3);
+    pub const TEIF: Irq = Irq(1 << 3);
     /** Half Transfer Interrupt Flag */
-    pub const HTIF: Irq =  Irq(1 << 2);
+    pub const HTIF: Irq = Irq(1 << 2);
     /** Transfer Complete Interrupt Flag */
-    pub const TCIF: Irq =  Irq(1 << 1);
+    pub const TCIF: Irq = Irq(1 << 1);
     /** Global Interrupt Flag */
-    pub const GIF: Irq =  Irq(1 << 0);
+    pub const GIF: Irq = Irq(1 << 0);
 }
 
 pub trait DmaInterruptExt {
@@ -44,7 +43,7 @@ pub trait DmaInterruptExt {
     /// same channel may be cleared by using the logical OR of the interrupt flags.
     ///
     /// * `interrupts : Irq` - Logical OR of interrupt numbers: [dma::irq](irq)
-    fn clear_interrupt_flags(&mut self, interrupts : Irq);
+    fn clear_interrupt_flags(&mut self, interrupts: Irq);
 
     /// DMA Channel Read Interrupt Flag
     ///
@@ -52,7 +51,7 @@ pub trait DmaInterruptExt {
     ///
     /// * `interrupt : Irq` - Interrupt number: [dma::irq](irq)
     /// @returns bool interrupt flag is set.
-    fn get_interrupt_flag(&mut self, interrupt : Irq) -> bool;
+    fn get_interrupt_flag(&mut self, interrupt: Irq) -> bool;
 }
 
 pub trait DmaChannelResetExt {
@@ -63,7 +62,6 @@ pub trait DmaChannelResetExt {
 }
 
 pub trait DmaChannelExt {
-
     /// DMA Channel Enable Memory to Memory Transfers
     ///
     /// Memory to memory transfers do not require a trigger to activate each transfer.
@@ -77,7 +75,7 @@ pub trait DmaChannelExt {
     /// hardware priority.
     ///
     /// * `prio : Priority` - Priority level
-    fn set_priority(&mut self, prio : Priority);
+    fn set_priority(&mut self, prio: Priority);
 
     /// DMA Channel Set Memory Word Width
     ///
@@ -85,7 +83,7 @@ pub trait DmaChannelExt {
     /// alignment information if the source and destination widths do not match.
     ///
     /// * `mem_size : DataSize` - Memory word width
-    fn set_memory_size(&mut self, mem_size : DataSize);
+    fn set_memory_size(&mut self, mem_size: DataSize);
 
     /// DMA Channel Set Peripheral Word Width
     ///
@@ -94,7 +92,7 @@ pub trait DmaChannelExt {
     /// if the peripheral does not support byte or half-word writes.
     ///
     /// * `peripheral_size : DataSize` - Peripheral word width
-    fn set_peripheral_size(&mut self, peripheral_size : DataSize);
+    fn set_peripheral_size(&mut self, peripheral_size: DataSize);
 
     /// DMA Channel Enable Memory Increment after Transfer
     ///
@@ -162,7 +160,6 @@ pub trait DmaChannelExt {
     /// **Note**: The DMA channel registers retain their values when the channel is
     /// disabled.
     fn disable(&mut self);
-
 }
 
 pub trait DmaOtherExt {
@@ -175,7 +172,7 @@ pub trait DmaOtherExt {
     /// function has no effect if the channel is enabled.
     ///
     /// * `address : u32` - Peripheral Address.
-    fn set_peripheral_address(&mut self, address : u32);
+    fn set_peripheral_address(&mut self, address: u32);
 
     /// DMA Channel Set the Base Memory Address
     ///
@@ -183,7 +180,7 @@ pub trait DmaOtherExt {
     /// function has no effect if the channel is enabled.
     ///
     /// * `address : u32` - Memory Initial Address.
-    fn set_memory_address(&mut self, address : u32);
+    fn set_memory_address(&mut self, address: u32);
 
     /// DMA Channel Set the Transfer Block Size
     ///
@@ -192,7 +189,7 @@ pub trait DmaOtherExt {
     ///
     /// * `number : u16` - Number of data words to transfer (65535
     /// maximum).
-    fn set_number_of_data(&mut self, number : u16);
+    fn set_number_of_data(&mut self, number: u16);
 }
 
 macro_rules! dmachannel {
@@ -210,7 +207,7 @@ macro_rules! dmachannel {
     }),)+) => {
         $(
             use crate::device_hal::dma::$dmaX;
-            
+
             $(
                 impl DmaInterruptExt for $dmaX::$CX {
                     fn clear_interrupt_flags(&mut self, interrupts : Irq) {
@@ -407,7 +404,6 @@ macro_rules! dmachannel {
         )+
     }
 }
-
 
 dmachannel! {
     DMA1: (dma1, dma1en, dma1rst, {

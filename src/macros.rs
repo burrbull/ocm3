@@ -1,7 +1,6 @@
-
 macro_rules! bitortype {
-    ($TYPE:ident, $VAL:ty) => (
-        #[derive(Clone,Copy,PartialEq,Eq)]
+    ($TYPE:ident, $VAL:ty) => {
+        #[derive(Clone, Copy, PartialEq, Eq)]
         pub struct $TYPE($VAL);
         impl $TYPE {
             #[inline]
@@ -16,5 +15,5 @@ macro_rules! bitortype {
                 $TYPE(self.0 | rhs.0)
             }
         }
-    )
+    };
 }
