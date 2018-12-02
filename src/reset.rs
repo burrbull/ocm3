@@ -1,8 +1,6 @@
-
 use crate::device::RCC;
 use crate::rcc::rst;
 use crate::rcc::RccExt;
-
 
 /// Peripheral Reset
 ///
@@ -13,35 +11,22 @@ pub trait Reset {
     fn reset(&self, rcc: &mut RCC);
 }
 
-
 macro_rules! impl_reset {
-    ($PER:ty, $REG:expr) => (
+    ($PER:ty, $REG:expr) => {
         impl Reset for $PER {
             fn reset(&self, rcc: &mut RCC) {
-                rcc.periph_reset_pulse($REG);// проверить
+                rcc.periph_reset_pulse($REG); // проверить
             }
         }
-    )
+    };
 }
 
 use crate::device::CAN;
-use crate::device::{I2C1,I2C2};
-use crate::device::{SPI1,SPI2,SPI3};
-use crate::device::{TIM1,
-                    TIM2,
-                    TIM3,
-                    TIM4,
-                    TIM5,
-                    TIM6,
-                    TIM7,
-                    TIM8,
-                    TIM9,
-                    TIM10,
-                    TIM11,
-                    TIM12,
-                    TIM13,
-                    TIM14};
-
+use crate::device::{I2C1, I2C2};
+use crate::device::{SPI1, SPI2, SPI3};
+use crate::device::{
+    TIM1, TIM10, TIM11, TIM12, TIM13, TIM14, TIM2, TIM3, TIM4, TIM5, TIM6, TIM7, TIM8, TIM9,
+};
 
 impl_reset!(CAN, rst::CAN1);
 //impl_reset!(CAN2, rst::CAN2);

@@ -6,11 +6,8 @@ mod macros;
 
 pub use embedded_hal as hal;
 
-#[cfg(feature="stm32f103")]
-pub use stm32f103xx_hal::{
-    self as device_hal,
-    stm32f103xx as device
-};
+#[cfg(feature = "stm32f103")]
+pub use stm32f103xx_hal::{self as device_hal, stm32f103xx as device};
 
 pub mod rcc;
 //pub mod rcc_cld;
@@ -33,6 +30,3 @@ pub mod spi;
 //?pub mod st_usbfs;
 pub mod timer;
 pub mod usart;
-
-
-

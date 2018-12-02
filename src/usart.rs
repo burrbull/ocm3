@@ -1,9 +1,9 @@
 #[derive(Clone, Copy, PartialEq)]
 pub enum StopBits {
-    Stop1   = 0,     /* 1 stop bit */
-    Stop0_5 = 1,     /* 0.5 stop bits */
-    Stop2   = 2,     /* 2 stop bits */
-    Stop1_5 = 3     /* 1.5 stop bits */
+    Stop1 = 0,   /* 1 stop bit */
+    Stop0_5 = 1, /* 0.5 stop bits */
+    Stop2 = 2,   /* 2 stop bits */
+    Stop1_5 = 3, /* 1.5 stop bits */
 }
 
 /// USART Parity Selection
@@ -11,7 +11,7 @@ pub enum StopBits {
 pub enum Parity {
     None,
     Even,
-    Odd
+    Odd,
 }
 
 /// USART Tx/Rx Mode Selection
@@ -19,7 +19,7 @@ pub enum Parity {
 pub enum Mode {
     Rx,
     Tx,
-    TxRx
+    TxRx,
 }
 
 /// USART Hardware Flow Control Selection
@@ -28,9 +28,8 @@ pub enum FlowControl {
     None,
     Rts,
     Cts,
-    RtsCts
+    RtsCts,
 }
-
 
 pub trait UsartBaudExt {
     /// USART Set Baudrate.
@@ -44,73 +43,73 @@ pub trait UsartBaudExt {
     fn set_baudrate(&self, baud: u32, freq: crate::rcc::Frequencies);
 }
 
-#[cfg(any(feature="stm32f2",feature="stm32f4"))]
+#[cfg(any(feature = "stm32f2", feature = "stm32f4"))]
 macro_rules! impl_usart_baud_f24_u16 {
-    ($USARTx:ty) => (
-    impl UsartBaudExt for $USARTx {
-        fn set_baudrate(&self, baud: u32, freq: crate::rcc::Frequencies) {
-            let clock = freq.apb2;
+    ($USARTx:ty) => {
+        impl UsartBaudExt for $USARTx {
+            fn set_baudrate(&self, baud: u32, freq: crate::rcc::Frequencies) {
+                let clock = freq.apb2;
 
-            // Yes it is as simple as that. The reference manual is
-            // talking about fractional calculation but it seems to be only
-            // marketing babble to sound awesome. It is nothing else but a
-            // simple divider to generate the correct baudrate.
-            //
-            // **Note**: We round() the value rather than floor()ing it, for more
-            // accurate divisor selection.
-            self.brr    .write(|w| unsafe {w
-                .bits( ((2 * clock) + baud) / (2 * baud) )
-            });
+                // Yes it is as simple as that. The reference manual is
+                // talking about fractional calculation but it seems to be only
+                // marketing babble to sound awesome. It is nothing else but a
+                // simple divider to generate the correct baudrate.
+                //
+                // **Note**: We round() the value rather than floor()ing it, for more
+                // accurate divisor selection.
+                self.brr
+                    .write(|w| unsafe { w.bits(((2 * clock) + baud) / (2 * baud)) });
+            }
         }
-    }
-)}
+    };
+}
 
-#[cfg(any(feature="stm32f2",feature="stm32f4"))]
+#[cfg(any(feature = "stm32f2", feature = "stm32f4"))]
 macro_rules! impl_usart_baud_f24 {
-    ($USARTx:ty) => (
-    impl UsartBaudExt for $USARTx {
-        fn set_baudrate(&self, baud: u32, freq: crate::rcc::Frequencies) {
-            let clock = freq.apb1;
+    ($USARTx:ty) => {
+        impl UsartBaudExt for $USARTx {
+            fn set_baudrate(&self, baud: u32, freq: crate::rcc::Frequencies) {
+                let clock = freq.apb1;
 
-            // Yes it is as simple as that. The reference manual is
-            // talking about fractional calculation but it seems to be only
-            // marketing babble to sound awesome. It is nothing else but a
-            // simple divider to generate the correct baudrate.
-            //
-            // **Note**: We round() the value rather than floor()ing it, for more
-            // accurate divisor selection.
-            self.brr    .write(|w| unsafe {w
-                .bits( ((2 * clock) + baud) / (2 * baud) )
-            });
+                // Yes it is as simple as that. The reference manual is
+                // talking about fractional calculation but it seems to be only
+                // marketing babble to sound awesome. It is nothing else but a
+                // simple divider to generate the correct baudrate.
+                //
+                // **Note**: We round() the value rather than floor()ing it, for more
+                // accurate divisor selection.
+                self.brr
+                    .write(|w| unsafe { w.bits(((2 * clock) + baud) / (2 * baud)) });
+            }
         }
-    }
-)}
+    };
+}
 
-#[cfg(not(any(feature="stm32f2",feature="stm32f4")))]
+#[cfg(not(any(feature = "stm32f2", feature = "stm32f4")))]
 macro_rules! impl_usart_baud_u1 {
-    ($USARTx:ty) => (
-    impl UsartBaudExt for $USARTx {
-        fn set_baudrate(&self, baud: u32, freq: crate::rcc::Frequencies) {
-            let clock = freq.apb2;
-            self.brr    .write(|w| unsafe { w
-                .bits( ((2 * clock) + baud) / (2 * baud) )
-            });
+    ($USARTx:ty) => {
+        impl UsartBaudExt for $USARTx {
+            fn set_baudrate(&self, baud: u32, freq: crate::rcc::Frequencies) {
+                let clock = freq.apb2;
+                self.brr
+                    .write(|w| unsafe { w.bits(((2 * clock) + baud) / (2 * baud)) });
+            }
         }
-    }
-)}
+    };
+}
 
-#[cfg(not(any(feature="stm32f2",feature="stm32f4")))]
+#[cfg(not(any(feature = "stm32f2", feature = "stm32f4")))]
 macro_rules! impl_usart_baud {
-    ($USARTx:ty) => (
-    impl UsartBaudExt for $USARTx {
-        fn set_baudrate(&self, baud: u32, freq: crate::rcc::Frequencies) {
-            let clock = freq.apb1;
-            self.brr    .write(|w| unsafe {w
-                .bits( ((2 * clock) + baud) / (2 * baud) )
-            });
+    ($USARTx:ty) => {
+        impl UsartBaudExt for $USARTx {
+            fn set_baudrate(&self, baud: u32, freq: crate::rcc::Frequencies) {
+                let clock = freq.apb1;
+                self.brr
+                    .write(|w| unsafe { w.bits(((2 * clock) + baud) / (2 * baud)) });
+            }
         }
-    }
-)}
+    };
+}
 
 pub trait UsartExt {
     /// USART Set Word Length.
@@ -200,7 +199,6 @@ pub trait UsartExt {
     /// USART Receiver Interrupt Enable.
     fn enable_rx_interrupt(&mut self);
 
-
     /// USART Receiver Interrupt Disable.
     fn disable_rx_interrupt(&mut self);
 
@@ -216,7 +214,6 @@ pub trait UsartExt {
     /// USART Error Interrupt Disable.
     fn disable_error_interrupt(&mut self);
 }
-
 
 pub trait UsartF123Ext {
     /// USART Send a Data Word.
@@ -251,225 +248,168 @@ pub trait UsartF123Ext {
     fn get_flag(&self, flag: u32) -> bool;
 }
 
-
 macro_rules! impl_usart {
-    ($USARTx:ty) => (
+    ($USARTx:ty) => {
+        impl UsartExt for $USARTx {
+            fn set_databits(&mut self, bits: u32) {
+                self.cr1.modify(|_, w| w.m0().bit(!(bits == 8)));
+            }
 
-    impl UsartExt for $USARTx {
-        fn set_databits(&mut self, bits: u32) {
-            self.cr1     .modify(|_,w| w
-                .m0()     .bit(!(bits == 8))
-            );
-        }
-        
-        fn set_stopbits(&mut self, stopbits: StopBits) {
-            self.cr2      .modify(|_,w| unsafe { w
-                .stop()   .bits( stopbits as u8 )
-            });
-        }
-        
-        fn set_parity(&mut self, parity: Parity) {
-            match parity {
-                Parity::None => {
-                    self.cr1     .modify(|_,w| w
-                        .pce()     .clear_bit()
-                    );
-                },
-                Parity::Even => {
-                    self.cr1     .modify(|_,w| w
-                        .pce()     .set_bit()
-                        .ps()    .clear_bit()
-                    );
-                },
-                Parity::Odd => {
-                    self.cr1     .modify(|_,w| w
-                        .pce()     .set_bit()
-                        .ps()    .set_bit()
-                    );
-                }
-            };
-        }
-        
-        fn set_mode(&mut self, mode: Mode) {
-            match mode {
-                Mode::Rx => {
-                    self.cr1     .modify(|_,w| w
-                        .re()     .set_bit()
-                    );
-                },
-                Mode::Tx => {
-                    self.cr1     .modify(|_,w| w
-                        .te()     .set_bit()
-                    );
-                },
-                Mode::TxRx => {
-                    self.cr1     .modify(|_,w| w
-                        .re()     .set_bit()
-                        .te()     .set_bit()
-                    );
-                }
-            };
-        }
-        
-        fn set_flow_control(&mut self, flowcontrol: FlowControl) {
-            match flowcontrol {
-                FlowControl::None => {
-                    self.cr3     .modify(|_,w| w
-                        .rtse()     .clear_bit()
-                        .ctse()     .clear_bit()
-                    );
-                },
-                FlowControl::Rts => {
-                    self.cr3     .modify(|_,w| w
-                        .rtse()     .set_bit()
-                    );
-                },
-                FlowControl::Cts => {
-                    self.cr3     .modify(|_,w| w
-                        .ctse()     .set_bit()
-                    );
-                },
-                FlowControl::RtsCts => {
-                    self.cr3     .modify(|_,w| w
-                        .rtse()     .set_bit()
-                        .ctse()     .set_bit()
-                    );
-                }
-            };
-        }
+            fn set_stopbits(&mut self, stopbits: StopBits) {
+                self.cr2
+                    .modify(|_, w| unsafe { w.stop().bits(stopbits as u8) });
+            }
 
-        /// USART Enable.
-        fn enable(&mut self) {
-            self.cr1     .modify(|_,w| w
-                .ue()     .set_bit()
-            );
-        }
+            fn set_parity(&mut self, parity: Parity) {
+                match parity {
+                    Parity::None => {
+                        self.cr1.modify(|_, w| w.pce().clear_bit());
+                    }
+                    Parity::Even => {
+                        self.cr1.modify(|_, w| w.pce().set_bit().ps().clear_bit());
+                    }
+                    Parity::Odd => {
+                        self.cr1.modify(|_, w| w.pce().set_bit().ps().set_bit());
+                    }
+                };
+            }
 
-        fn disable(&mut self) {
-            self.cr1     .modify(|_,w| w
-                .ue()     .clear_bit()
-            );
-        }
+            fn set_mode(&mut self, mode: Mode) {
+                match mode {
+                    Mode::Rx => {
+                        self.cr1.modify(|_, w| w.re().set_bit());
+                    }
+                    Mode::Tx => {
+                        self.cr1.modify(|_, w| w.te().set_bit());
+                    }
+                    Mode::TxRx => {
+                        self.cr1.modify(|_, w| w.re().set_bit().te().set_bit());
+                    }
+                };
+            }
 
-        fn send_blocking(&mut self, data: u16) {
-            self.wait_send_ready();
-            self.send(data);
-        }
+            fn set_flow_control(&mut self, flowcontrol: FlowControl) {
+                match flowcontrol {
+                    FlowControl::None => {
+                        self.cr3
+                            .modify(|_, w| w.rtse().clear_bit().ctse().clear_bit());
+                    }
+                    FlowControl::Rts => {
+                        self.cr3.modify(|_, w| w.rtse().set_bit());
+                    }
+                    FlowControl::Cts => {
+                        self.cr3.modify(|_, w| w.ctse().set_bit());
+                    }
+                    FlowControl::RtsCts => {
+                        self.cr3.modify(|_, w| w.rtse().set_bit().ctse().set_bit());
+                    }
+                };
+            }
 
-        fn recv_blocking(&mut self) -> u16 {
-            self.wait_recv_ready();
-            self.recv()
-        }
+            /// USART Enable.
+            fn enable(&mut self) {
+                self.cr1.modify(|_, w| w.ue().set_bit());
+            }
 
-        fn enable_rx_dma(&mut self) {
-            self.cr3     .modify(|_,w| w
-                .dmar()     .set_bit()
-            );
-        }
+            fn disable(&mut self) {
+                self.cr1.modify(|_, w| w.ue().clear_bit());
+            }
 
-        fn disable_rx_dma(&mut self) {
-            self.cr3     .modify(|_,w| w
-                .dmar()     .clear_bit()
-            );
-        }
+            fn send_blocking(&mut self, data: u16) {
+                self.wait_send_ready();
+                self.send(data);
+            }
 
-        fn enable_tx_dma(&mut self) {
-            self.cr3     .modify(|_,w| w
-                .dmat()     .set_bit()
-            );
-        }
+            fn recv_blocking(&mut self) -> u16 {
+                self.wait_recv_ready();
+                self.recv()
+            }
 
-        fn disable_tx_dma(&mut self) {
-            self.cr3     .modify(|_,w| w
-                .dmat()     .clear_bit()
-            );
-        }
+            fn enable_rx_dma(&mut self) {
+                self.cr3.modify(|_, w| w.dmar().set_bit());
+            }
 
-        fn enable_rx_interrupt(&mut self) {
-            self.cr1     .modify(|_,w| w
-                .rxneie()    .set_bit()
-            );
-        }
+            fn disable_rx_dma(&mut self) {
+                self.cr3.modify(|_, w| w.dmar().clear_bit());
+            }
 
-        fn disable_rx_interrupt(&mut self) {
-            self.cr1     .modify(|_,w| w
-                .rxneie()    .clear_bit()
-            );
-        }
+            fn enable_tx_dma(&mut self) {
+                self.cr3.modify(|_, w| w.dmat().set_bit());
+            }
 
-        fn enable_tx_interrupt(&mut self) {
-            self.cr1     .modify(|_,w| w
-                .txeie()    .set_bit()
-            );
-        }
+            fn disable_tx_dma(&mut self) {
+                self.cr3.modify(|_, w| w.dmat().clear_bit());
+            }
 
-        fn disable_tx_interrupt(&mut self) {
-            self.cr1     .modify(|_,w| w
-                .txeie()    .clear_bit()
-            );
-        }
+            fn enable_rx_interrupt(&mut self) {
+                self.cr1.modify(|_, w| w.rxneie().set_bit());
+            }
 
-        fn enable_error_interrupt(&mut self) {
-            self.cr3     .modify(|_,w| w
-                .eie()     .set_bit()
-            );
-        }
+            fn disable_rx_interrupt(&mut self) {
+                self.cr1.modify(|_, w| w.rxneie().clear_bit());
+            }
 
-        fn disable_error_interrupt(&mut self) {
-            self.cr3     .modify(|_,w| w
-                .eie()     .clear_bit()
-            );
+            fn enable_tx_interrupt(&mut self) {
+                self.cr1.modify(|_, w| w.txeie().set_bit());
+            }
+
+            fn disable_tx_interrupt(&mut self) {
+                self.cr1.modify(|_, w| w.txeie().clear_bit());
+            }
+
+            fn enable_error_interrupt(&mut self) {
+                self.cr3.modify(|_, w| w.eie().set_bit());
+            }
+
+            fn disable_error_interrupt(&mut self) {
+                self.cr3.modify(|_, w| w.eie().clear_bit());
+            }
         }
-    }
-    )
+    };
 }
 
 macro_rules! impl_usartf123 {
-    ($USARTx:ty) => (
+    ($USARTx:ty) => {
+        impl UsartF123Ext for $USARTx {
+            fn send(&mut self, data: u16) {
+                /* Send data. */
+                self.dr.write(|w| unsafe { w.dr().bits(data) });
+            }
 
-    impl UsartF123Ext for $USARTx {
-        fn send(&mut self, data: u16) {
-            /* Send data. */
-            self.dr    .write(|w| unsafe { w
-                .dr() .bits( data )
-            });
+            fn recv(&self) -> u16 {
+                /* Receive data. */
+                self.dr.read().dr().bits()
+            }
+
+            fn wait_send_ready(&mut self) {
+                /* Wait until the data has been transferred into the shift register. */
+                while self.sr.read().txe().bit_is_clear() {}
+            }
+
+            fn wait_recv_ready(&mut self) {
+                /* Wait until the data is ready to be received. */
+                while self.sr.read().rxne().bit_is_clear() {}
+            }
+
+            fn get_flag(&self, flag: u32) -> bool {
+                (self.sr.read().bits() & flag) != 0
+            }
         }
-
-        fn recv(&self) -> u16 {
-            /* Receive data. */
-            self.dr.read().dr().bits()
-        }
-
-        fn wait_send_ready(&mut self) {
-            /* Wait until the data has been transferred into the shift register. */
-            while self.sr.read().txe().bit_is_clear() {}
-        }
-
-        fn wait_recv_ready(&mut self) {
-            /* Wait until the data is ready to be received. */
-            while self.sr.read().rxne().bit_is_clear() {}
-        }
-
-        fn get_flag(&self, flag: u32) -> bool {
-            (self.sr.read().bits() & flag) != 0
-        }
-    }
-
-    )
+    };
 }
 
-use crate::device::{USART1,USART2};
+use crate::device::{USART1, USART2};
 impl_usart!(USART1);
 impl_usart!(USART2);
 impl_usartf123!(USART1);
 impl_usartf123!(USART2);
 
-#[cfg(not(any(feature="stm32f2",feature="stm32f4")))]
+#[cfg(not(any(feature = "stm32f2", feature = "stm32f4")))]
 impl_usart_baud_u1!(USART1);
-#[cfg(not(any(feature="stm32f2",feature="stm32f4")))]
+#[cfg(not(any(feature = "stm32f2", feature = "stm32f4")))]
 impl_usart_baud!(USART2);
 
-#[cfg(any(feature="stm32f2",feature="stm32f4"))]
+#[cfg(any(feature = "stm32f2", feature = "stm32f4"))]
 impl_usart_baud_f24_u16!(USART1);
-#[cfg(any(feature="stm32f2",feature="stm32f4"))]
+#[cfg(any(feature = "stm32f2", feature = "stm32f4"))]
 impl_usart_baud_f24!(USART2);

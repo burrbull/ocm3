@@ -1,17 +1,15 @@
-
-pub const LSI_FREQUENCY : u32 = 32000;
-const COUNT_LENGTH : u32 = 12;
-const COUNT_MASK : u32 = (1 << COUNT_LENGTH)-1;
-
+pub const LSI_FREQUENCY: u32 = 32000;
+const COUNT_LENGTH: u32 = 12;
+const COUNT_MASK: u32 = (1 << COUNT_LENGTH) - 1;
 
 use crate::device::IWDG;
 
 /// Key value (write-only, reads as 0x0000)
 #[derive(Clone, Copy, PartialEq)]
 pub enum Key {
-    Reset  = 0xaaaa,
+    Reset = 0xaaaa,
     Unlock = 0x5555,
-    Start  = 0xcccc
+    Start = 0xcccc,
 }
 
 /* PR[2:0]: Prescaler divider */
@@ -23,7 +21,7 @@ pub enum Prescaler {
     Div32 = 0x3,
     Div64 = 0x4,
     Div128 = 0x5,
-    Div256 = 0x6
+    Div256 = 0x6,
 }
 
 pub trait IwdgExt {
@@ -45,10 +43,10 @@ pub trait IwdgExt {
     ///
     /// * `period : u32` - Period in milliseconds (< 32760) from a watchdog
     /// reset until a system reset is issued.
-    fn set_period_ms(&mut self, period : u32);
+    fn set_period_ms(&mut self, period: u32);
 
     /// IWDG Get Reload Register Status
-    /// 
+    ///
     /// Returns `bool`: true if the reload register is busy and unavailable for
     /// loading a new count value.
     fn reload_busy(&self) -> bool;
@@ -68,12 +66,11 @@ pub trait IwdgExt {
 
 impl IwdgExt for IWDG {
     fn start(&mut self) {
-        self.kr    .write(|w| unsafe { w
-            .key()   .bits(Key::Start as u16)
-        });
+        self.kr
+            .write(|w| unsafe { w.key().bits(Key::Start as u16) });
     }
 
-    fn set_period_ms(&mut self, period : u32) {
+    fn set_period_ms(&mut self, period: u32) {
         /* Set the count to represent ticks of the 32kHz LSI clock */
         let count = period << 5;
 
@@ -102,34 +99,27 @@ impl IwdgExt for IWDG {
             count = 1;
         }*/
 
-        while self.prescaler_busy() {};
-        self.kr    .write(|w| unsafe { w
-            .key()   .bits(Key::Unlock as u16)
-        });
-        self.pr    .write(|w| unsafe { w
-            .pr()   .bits(exponent as u8)
-        });
-        while self.reload_busy() {};
-        self.kr    .write(|w| unsafe { w
-            .key()   .bits(Key::Unlock as u16)
-        });
-        self.rlr    .write(|w| unsafe { w
-            .rl()   .bits((reload & COUNT_MASK) as u16)
-        });
+        while self.prescaler_busy() {}
+        self.kr
+            .write(|w| unsafe { w.key().bits(Key::Unlock as u16) });
+        self.pr.write(|w| unsafe { w.pr().bits(exponent as u8) });
+        while self.reload_busy() {}
+        self.kr
+            .write(|w| unsafe { w.key().bits(Key::Unlock as u16) });
+        self.rlr
+            .write(|w| unsafe { w.rl().bits((reload & COUNT_MASK) as u16) });
     }
 
     fn reload_busy(&self) -> bool {
-        self.sr .read().rvu().bit_is_set()
+        self.sr.read().rvu().bit_is_set()
     }
 
     fn prescaler_busy(&self) -> bool {
-        self.sr .read().pvu().bit_is_set()
+        self.sr.read().pvu().bit_is_set()
     }
 
-    fn reset(&mut self)
-    {
-        self.kr    .write(|w| unsafe { w
-            .key() .bits(Key::Reset as u16)
-        });
+    fn reset(&mut self) {
+        self.kr
+            .write(|w| unsafe { w.key().bits(Key::Reset as u16) });
     }
 }

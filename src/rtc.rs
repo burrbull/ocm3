@@ -1,7 +1,7 @@
-use crate::device::{RTC,RCC,PWR};
+use crate::device::{PWR, RCC, RTC};
 
-use crate::rcc::{self,RccExt,RccF1Ext,Osc};
-use crate::pwr::{PwrExt};
+use crate::pwr::PwrExt;
+use crate::rcc::{self, Osc, RccExt, RccF1Ext};
 
 /// RTC Interrupt Flags
 #[derive(Clone, Copy, PartialEq)]
@@ -11,9 +11,8 @@ pub enum RtcFlag {
     /// Alarm Event Flag
     ALR,
     /// Counter Overflow Flag
-    OW
+    OW,
 }
-
 
 pub trait RtcExt {
     /// RTC Set Operational from the Off state.
@@ -23,7 +22,7 @@ pub trait RtcExt {
     ///
     /// * `clock_source : Osc` - RTC clock source. Only the values HSE, LSE
     ///     and LSI are permitted.
-    fn awake_from_off(&mut self, rcc : &mut RCC, pwr : &mut PWR, clock_source : Osc);
+    fn awake_from_off(&mut self, rcc: &mut RCC, pwr: &mut PWR, clock_source: Osc);
 
     /// RTC Enter Configuration Mode.
     ///
@@ -39,7 +38,7 @@ pub trait RtcExt {
     /// RTC Set the Alarm Time.
     ///
     /// * `alarm_time : u32` - time at which the alarm event is triggered.
-    fn set_alarm_time(&mut self, alarm_time : u32);
+    fn set_alarm_time(&mut self, alarm_time: u32);
 
     /// RTC Enable the Alarm.
     fn enable_alarm(&mut self);
@@ -50,7 +49,7 @@ pub trait RtcExt {
     /// RTC Set the prescaler Value
     ///
     /// * `prescale_val : u32` - 20 bit prescale divider.
-    fn set_prescale_val(&mut self, prescale_val : u32);
+    fn set_prescale_val(&mut self, prescale_val: u32);
 
     /// RTC return the Counter Value
     ///
@@ -61,44 +60,44 @@ pub trait RtcExt {
     ///
     /// Returns `u32` - the 20 bit prescale divider.
     fn get_prescale_div_val(&mut self) -> u32;
-/*
-    /// RTC return the Alarm Value
-    ///
-    /// Returns `u32`: the 32 bit alarm value.
-    fn get_alarm_val(&mut self) -> u32;
-*/
+    /*
+        /// RTC return the Alarm Value
+        ///
+        /// Returns `u32`: the 32 bit alarm value.
+        fn get_alarm_val(&mut self) -> u32;
+    */
     /// RTC set the Counter
     ///
     /// `counter_val : u32` - 32 bit time setting for the counter.
-    fn set_counter_val(&mut self, counter_val : u32);
+    fn set_counter_val(&mut self, counter_val: u32);
 
     /// RTC Enable Interrupt
     ///
     /// * `flag_val : RtcFlag` - The flag to enable.
-    fn interrupt_enable(&mut self, flag_val : RtcFlag);
+    fn interrupt_enable(&mut self, flag_val: RtcFlag);
 
     /// RTC Disable Interrupt
     ///
     /// * `flag_val : RtcFlag` - The flag to disable.
-    fn interrupt_disable(&mut self, flag_val : RtcFlag);
+    fn interrupt_disable(&mut self, flag_val: RtcFlag);
 
     /// RTC Clear an Interrupt Flag
     ///
     /// * `flag_val : RtcFlag` - The flag to clear.
-    fn clear_flag(&mut self, flag_val : RtcFlag);
+    fn clear_flag(&mut self, flag_val: RtcFlag);
 
     /// RTC Return a Flag Setting
     ///
     /// * `flag_val : RtcFlag` - The flag to check.
     ///
     /// Returns `u32` - a nonzero value if the flag is set, zero otherwise.
-    fn check_flag(&self, flag_val : RtcFlag) -> bool;
+    fn check_flag(&self, flag_val: RtcFlag) -> bool;
 
     /// RTC Start RTC after Standby Mode.
     ///
     /// Enable the backup domain clocks, enable write access to the backup
     /// domain and the RTC, and synchronise the RTC register access.
-    fn awake_from_standby(&mut self, rcc : &mut RCC, pwr : &mut PWR);
+    fn awake_from_standby(&mut self, rcc: &mut RCC, pwr: &mut PWR);
 
     /// RTC Configuration on Wakeup
     ///
@@ -109,11 +108,11 @@ pub trait RtcExt {
     /// * `clock_source : Osc` - RTC clock source. Only HSE, LSE
     ///     and LSI are permitted.
     /// * `prescale_val : u32` - 20 bit prescale divider.
-    fn auto_awake(&mut self, rcc : &mut RCC, pwr : &mut PWR, clock_source : Osc, prescale_val : u32);
+    fn auto_awake(&mut self, rcc: &mut RCC, pwr: &mut PWR, clock_source: Osc, prescale_val: u32);
 }
 
 impl RtcExt for RTC {
-    fn awake_from_off(&mut self, rcc : &mut RCC, pwr : &mut PWR, clock_source : Osc) {
+    fn awake_from_off(&mut self, rcc: &mut RCC, pwr: &mut PWR, clock_source: Osc) {
         /* Enable power and backup interface clocks. */
         rcc.periph_clock_enable(rcc::en::PWR);
         rcc.periph_clock_enable(rcc::en::BKP);
@@ -125,83 +124,73 @@ impl RtcExt for RTC {
         rcc.set_rtc_clock_source(clock_source);
 
         /* Clear the RTC Control Register */
-        self.crh .reset();
-        self.crl .reset();
+        self.crh.reset();
+        self.crl.reset();
 
         /* Enable the RTC. */
         rcc.enable_rtc_clock();
 
         /* Clear the Registers */
         self.enter_config_mode();
-        self.prlh .write(|w| w);
-        self.prll .write(|w| w);
-        self.cnth .reset();
-        self.cntl .reset();
-        self.alrh .write(|w| w);
-        self.alrl .write(|w| w);
+        self.prlh.write(|w| w);
+        self.prll.write(|w| w);
+        self.cnth.reset();
+        self.cntl.reset();
+        self.alrh.write(|w| w);
+        self.alrl.write(|w| w);
         self.exit_config_mode();
 
         /* Wait for the RSF bit in RTC_CRL to be set by hardware. */
-        self.crl  .modify(|_,w| w
-            .rsf()   .clear_bit()
-        );
-        while self.crl.read().rsf().bit_is_clear() {};
+        self.crl.modify(|_, w| w.rsf().clear_bit());
+        while self.crl.read().rsf().bit_is_clear() {}
     }
 
     fn enter_config_mode(&mut self) {
         /* Wait until the RTOFF bit is 1 (no RTC register writes ongoing). */
-        while self.crl.read().rtoff().bit_is_clear() {};
-        
+        while self.crl.read().rtoff().bit_is_clear() {}
+
         /* Enter configuration mode. */
-        self.crl  .modify(|_,w| w
-            .cnf()   .set_bit()
-        );
+        self.crl.modify(|_, w| w.cnf().set_bit());
     }
 
-    fn exit_config_mode(&mut self) { 
+    fn exit_config_mode(&mut self) {
         /* Exit configuration mode. */
-        self.crl  .modify(|_,w| w
-            .cnf()   .clear_bit()
-        );
-        
+        self.crl.modify(|_, w| w.cnf().clear_bit());
+
         /* Wait until the RTOFF bit is 1 (our RTC register write finished). */
-        while self.crl.read().rtoff().bit_is_clear() {};
+        while self.crl.read().rtoff().bit_is_clear() {}
     }
 
-    fn set_alarm_time(&mut self, alarm_time : u32) {
+    fn set_alarm_time(&mut self, alarm_time: u32) {
         self.enter_config_mode();
-        self.alrl  .write(|w| unsafe { w
-            .bits ( alarm_time & 0x0000ffff )
-        });
-        self.alrh  .write(|w| unsafe { w
-            .bits ( (alarm_time & 0xffff0000) >> 16 )
-        });
+        self.alrl
+            .write(|w| unsafe { w.bits(alarm_time & 0x0000ffff) });
+        self.alrh
+            .write(|w| unsafe { w.bits((alarm_time & 0xffff0000) >> 16) });
         self.exit_config_mode();
     }
 
     fn enable_alarm(&mut self) {
         self.enter_config_mode();
-        self.crh  .modify(|_,w| w
-            .alrie()   .set_bit()
-        );
+        self.crh.modify(|_, w| w.alrie().set_bit());
         self.exit_config_mode();
     }
 
     fn disable_alarm(&mut self) {
         self.enter_config_mode();
-        self.crh  .modify(|_,w| w
-            .alrie()   .clear_bit()
-        );
+        self.crh.modify(|_, w| w.alrie().clear_bit());
         self.exit_config_mode();
     }
 
-    fn set_prescale_val(&mut self, prescale_val : u32) {
+    fn set_prescale_val(&mut self, prescale_val: u32) {
         self.enter_config_mode();
-        self.prll  .write(|w| unsafe { w /* PRL[15:0] */
-            .bits ( prescale_val & 0x0000ffff )
+        self.prll.write(|w| unsafe {
+            w /* PRL[15:0] */
+                .bits(prescale_val & 0x0000ffff)
         });
-        self.prlh  .write(|w| unsafe { w /* PRL[19:16] */
-            .bits ( (prescale_val & 0x000f0000) >> 16 )
+        self.prlh.write(|w| unsafe {
+            w /* PRL[19:16] */
+                .bits((prescale_val & 0x000f0000) >> 16)
         });
         self.exit_config_mode();
     }
@@ -218,98 +207,64 @@ impl RtcExt for RTC {
         (self.alrh.read().bits() << 16) | self.alrl.read().bits()
     }*/
 
-    fn set_counter_val(&mut self, counter_val : u32) {
+    fn set_counter_val(&mut self, counter_val: u32) {
         self.enter_config_mode();
-        self.cnth  .write(|w| unsafe { w /* CNT[31:16] */
-            .bits ( (counter_val & 0xffff0000) >> 16 )
+        self.cnth.write(|w| unsafe {
+            w /* CNT[31:16] */
+                .bits((counter_val & 0xffff0000) >> 16)
         });
-        self.cntl  .write(|w| unsafe { w /* CNT[15:0] */
-            .bits ( counter_val & 0x0000ffff )
-        });        
+        self.cntl.write(|w| unsafe {
+            w /* CNT[15:0] */
+                .bits(counter_val & 0x0000ffff)
+        });
         self.exit_config_mode();
     }
 
-    fn interrupt_enable(&mut self, flag_val : RtcFlag) {
+    fn interrupt_enable(&mut self, flag_val: RtcFlag) {
         self.enter_config_mode();
 
         /* Set the correct interrupt enable. */
         match flag_val {
-            RtcFlag::SEC => {
-                self.crh .modify(|_,w| w
-                    .secie() .set_bit()
-                )
-            },
-            RtcFlag::ALR => {
-                self.crh .modify(|_,w| w
-                    .alrie() .set_bit()
-                )
-            },
-            RtcFlag::OW => {
-                self.crh .modify(|_,w| w
-                    .owie() .set_bit()
-                )
-            }
+            RtcFlag::SEC => self.crh.modify(|_, w| w.secie().set_bit()),
+            RtcFlag::ALR => self.crh.modify(|_, w| w.alrie().set_bit()),
+            RtcFlag::OW => self.crh.modify(|_, w| w.owie().set_bit()),
         };
         self.exit_config_mode();
     }
 
-    fn interrupt_disable(&mut self, flag_val : RtcFlag) {
+    fn interrupt_disable(&mut self, flag_val: RtcFlag) {
         self.enter_config_mode();
 
         /* Disable the correct interrupt enable. */
         match flag_val {
-            RtcFlag::SEC => {
-                self.crh .modify(|_,w| w
-                    .secie() .clear_bit()
-                )
-            },
-            RtcFlag::ALR => {
-                self.crh .modify(|_,w| w
-                    .alrie() .clear_bit()
-                )
-            },
-            RtcFlag::OW => {
-                self.crh .modify(|_,w| w
-                    .owie() .clear_bit()
-                )
-            }
+            RtcFlag::SEC => self.crh.modify(|_, w| w.secie().clear_bit()),
+            RtcFlag::ALR => self.crh.modify(|_, w| w.alrie().clear_bit()),
+            RtcFlag::OW => self.crh.modify(|_, w| w.owie().clear_bit()),
         };
         self.exit_config_mode();
     }
 
-    fn clear_flag(&mut self, flag_val : RtcFlag) {
+    fn clear_flag(&mut self, flag_val: RtcFlag) {
         /* Configuration mode not needed. */
 
         /* Clear the correct flag. */
         match flag_val {
-            RtcFlag::SEC => {
-                self.crl .modify(|_,w| w
-                    .secf() .clear_bit()
-                )
-            },
-            RtcFlag::ALR => {
-                self.crl .modify(|_,w| w
-                    .alrf() .clear_bit()
-                )
-            },
-            RtcFlag::OW => {
-                self.crl .modify(|_,w| w
-                    .owf() .clear_bit()
-                )
-            }
+            RtcFlag::SEC => self.crl.modify(|_, w| w.secf().clear_bit()),
+            RtcFlag::ALR => self.crl.modify(|_, w| w.alrf().clear_bit()),
+            RtcFlag::OW => self.crl.modify(|_, w| w.owf().clear_bit()),
         };
     }
 
-    fn check_flag(&self, flag_val : RtcFlag) -> bool {
+    fn check_flag(&self, flag_val: RtcFlag) -> bool {
         /* Read correct flag. */
         match flag_val {
-            RtcFlag::SEC => { self.crl .read(). secf() .bit_is_set() },
-            RtcFlag::ALR => { self.crl .read(). alrf() .bit_is_set() },
-            RtcFlag::OW =>  { self.crl .read(). owf()  .bit_is_set() }
+            RtcFlag::SEC => self.crl.read().secf().bit_is_set(),
+            RtcFlag::ALR => self.crl.read().alrf().bit_is_set(),
+            RtcFlag::OW => self.crl.read().owf().bit_is_set(),
         }
     }
 
-    fn awake_from_standby(&mut self, rcc : &mut RCC, pwr : &mut PWR) {
+    fn awake_from_standby(&mut self, rcc: &mut RCC, pwr: &mut PWR) {
         /* Enable power and backup interface clocks. */
         rcc.periph_clock_enable(rcc::en::PWR);
         rcc.periph_clock_enable(rcc::en::BKP);
@@ -318,17 +273,15 @@ impl RtcExt for RTC {
         pwr.disable_backup_domain_write_protect();
 
         /* Wait for the RSF bit in RTC_CRL to be set by hardware. */
-        self.crl  .modify(|_,w| w
-            .rsf()   .clear_bit()
-        );
-        while self.crl.read().rsf().bit_is_clear() {};
+        self.crl.modify(|_, w| w.rsf().clear_bit());
+        while self.crl.read().rsf().bit_is_clear() {}
 
         /* Wait for the last write operation to finish. */
         /* TODO: Necessary? */
-        while self.crl.read().rtoff().bit_is_clear() {};
+        while self.crl.read().rtoff().bit_is_clear() {}
     }
 
-    fn auto_awake(&mut self, rcc : &mut RCC, pwr : &mut PWR, clock_source : Osc, prescale_val : u32) {
+    fn auto_awake(&mut self, rcc: &mut RCC, pwr: &mut PWR, clock_source: Osc, prescale_val: u32) {
         /* Enable power and backup interface clocks. */
         rcc.periph_clock_enable(rcc::en::PWR);
         rcc.periph_clock_enable(rcc::en::BKP);
@@ -342,5 +295,4 @@ impl RtcExt for RTC {
             self.set_prescale_val(prescale_val);
         }
     }
-
 }
