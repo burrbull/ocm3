@@ -12,11 +12,11 @@
 //! words. 
 
 /// Channel priority level
-pub use crate::device::dma1::ch::ccr::PLW as Priority;
+pub use crate::device::dma1::ch::cr::PLW as Priority;
 /// Memory size
 ///
 /// Peripheral size
-pub use crate::device::dma1::ch::ccr::PSIZEW as DataSize;
+pub use crate::device::dma1::ch::cr::PSIZEW as DataSize;
 
 
 bitortype!(Irq, u8);
@@ -244,13 +244,13 @@ macro_rules! dmachannel {
                 impl DmaChannelResetExt for $dmaX::$CX {
                     fn reset(&mut self) {
                         /* Disable channel and reset config bits. */
-                        self.ccr()    .reset();
+                        self.ch().cr    .reset();
                         /* Reset data transfer number. */
-                        self.cndtr()  .reset();
+                        self.ch().ndtr  .reset();
                         /* Reset peripheral address. */
-                        self.cpar()   .reset();
+                        self.ch().par   .reset();
                         /* Reset memory address. */
-                        self.cmar()   .reset();
+                        self.ch().mar   .reset();
                         /* Reset interrupt flags. */
                         self.ifcr()    .write(|w| w
                             .$cteifX() .set_bit()
@@ -263,117 +263,117 @@ macro_rules! dmachannel {
 
                 impl DmaChannelExt for $dmaX::$CX {
                     fn enable_mem2mem_mode(&mut self) {
-                        self.ccr()    .modify(|_,w| w
+                        self.ch().cr    .modify(|_,w| w
                             .mem2mem().set_bit()
                             .circ()   .clear_bit()
                         );
                     }
 
                     fn set_priority(&mut self, prio : Priority) {
-                        self.ccr()    .modify(|_,w| w
+                        self.ch().cr    .modify(|_,w| w
                             .pl()   .bits( prio as u8 )
                         );
                     }
 
                     fn set_memory_size(&mut self, mem_size : DataSize) {
-                        self.ccr()    .modify(|_,w| unsafe { w
+                        self.ch().cr    .modify(|_,w| unsafe { w
                             .msize()   .bits( mem_size as u8 )
                         });
                     }
 
                     fn set_peripheral_size(&mut self, peripheral_size : DataSize) {
-                        self.ccr()    .modify(|_,w| unsafe { w
+                        self.ch().cr    .modify(|_,w| unsafe { w
                             .psize()   .bits( peripheral_size as u8 )
                         });
                     }
 
                     fn enable_memory_increment_mode(&mut self) {
-                        self.ccr()    .modify(|_,w| w
+                        self.ch().cr    .modify(|_,w| w
                             .minc() .set_bit()
                         );
                     }
 
                     fn disable_memory_increment_mode(&mut self) {
-                        self.ccr()    .modify(|_,w| w
+                        self.ch().cr    .modify(|_,w| w
                             .minc() .clear_bit()
                         );
                     }
 
                     fn enable_peripheral_increment_mode(&mut self) {
-                        self.ccr()    .modify(|_,w| w
+                        self.ch().cr    .modify(|_,w| w
                             .pinc() .set_bit()
                         );
                     }
 
                     fn disable_peripheral_increment_mode(&mut self) {
-                        self.ccr()    .modify(|_,w| w
+                        self.ch().cr    .modify(|_,w| w
                             .pinc() .clear_bit()
                         );
                     }
 
                     fn enable_circular_mode(&mut self) {
-                        self.ccr()       .modify(|_,w| w
+                        self.ch().cr       .modify(|_,w| w
                             .circ()    .set_bit()
                             .mem2mem() .clear_bit()
                         );
                     }
 
                     fn set_read_from_peripheral(&mut self) {
-                        self.ccr()    .modify(|_,w| w
+                        self.ch().cr    .modify(|_,w| w
                             .dir() .clear_bit()
                         );
                     }
 
                     fn set_read_from_memory(&mut self) {
-                        self.ccr()    .modify(|_,w| w
+                        self.ch().cr    .modify(|_,w| w
                             .dir() .set_bit()
                         );
                     }
 
                     fn enable_transfer_error_interrupt(&mut self) {
-                        self.ccr()    .modify(|_,w| w
+                        self.ch().cr    .modify(|_,w| w
                             .teie() .set_bit()
                         );
                     }
 
                     fn disable_transfer_error_interrupt(&mut self) {
-                        self.ccr()    .modify(|_,w| w
+                        self.ch().cr    .modify(|_,w| w
                             .teie() .clear_bit()
                         );
                     }
 
                     fn enable_half_transfer_interrupt(&mut self) {
-                        self.ccr()    .modify(|_,w| w
+                        self.ch().cr    .modify(|_,w| w
                             .htie() .set_bit()
                         );
                     }
 
                     fn disable_half_transfer_interrupt(&mut self) {
-                        self.ccr()    .modify(|_,w| w
+                        self.ch().cr    .modify(|_,w| w
                             .htie() .clear_bit()
                         );
                     }
 
                     fn enable_transfer_complete_interrupt(&mut self) {
-                        self.ccr()    .modify(|_,w| w
+                        self.ch().cr    .modify(|_,w| w
                             .tcie() .set_bit()
                         );
                     }
 
                     fn disable_transfer_complete_interrupt(&mut self) {
-                        self.ccr()    .modify(|_,w| w
+                        self.ch().cr    .modify(|_,w| w
                             .tcie() .clear_bit()
                         );
                     }
 
                     fn enable(&mut self) {
-                        self.ccr()    .modify(|_,w| w
+                        self.ch().cr    .modify(|_,w| w
                             .en() .set_bit()
                         );
                     }
 
                     fn disable(&mut self) {
-                        self.ccr()    .modify(|_,w| w
+                        self.ch().cr    .modify(|_,w| w
                             .en() .clear_bit()
                         );
                     }
@@ -382,23 +382,23 @@ macro_rules! dmachannel {
 
                 impl DmaOtherExt for $dmaX::$CX {
                     fn set_peripheral_address(&mut self, address : u32) {
-                        if self.ccr()  .read().en().bit_is_clear() {
-                            self.cpar()     .write(|w| unsafe { w
+                        if self.ch().cr  .read().en().bit_is_clear() {
+                            self.ch().par     .write(|w| unsafe { w
                                 .bits( address )
                             });
                         }
                     }
 
                     fn set_memory_address(&mut self, address : u32) {
-                        if self.ccr().read().en().bit_is_clear() {
-                            self.cmar()     .write(|w| unsafe { w
+                        if self.ch().cr    .read().en().bit_is_clear() {
+                            self.ch().mar     .write(|w| unsafe { w
                                 .bits( address )
                             });
                         }
                     }
 
                     fn set_number_of_data(&mut self, number : u16) {
-                        self.cndtr()     .write(|w| unsafe { w
+                        self.ch().ndtr    .write(|w| unsafe { w
                             .ndt()        .bits( number )
                         });
                     }

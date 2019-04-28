@@ -70,7 +70,7 @@ pub enum CanTimeSegment1 {
 const CAN_MSR_INAK_TIMEOUT: u32 = 0x0000FFFF;
 
 
-use crate::device::CAN;
+use crate::device::CAN1;
 //use crate::device::{CAN1 as CAN,CAN2};
 
 union EightBytes {
@@ -213,7 +213,7 @@ trait CanExt {
     fn available_mailbox (&self) -> bool;
 }
 
-impl CanExt for CAN {
+impl CanExt for CAN1 {
     #[inline]
     fn init (&mut self, ttcm: bool, abom: bool, awum: bool, nart: bool,
              rflm: bool, txfp: bool,

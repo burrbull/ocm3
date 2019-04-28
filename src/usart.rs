@@ -258,7 +258,7 @@ macro_rules! impl_usart {
     impl UsartExt for $USARTx {
         fn set_databits(&mut self, bits: u32) {
             self.cr1     .modify(|_,w| w
-                .m0()     .bit(!(bits == 8))
+                .m()     .bit(!(bits == 8))
             );
         }
         

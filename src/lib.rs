@@ -1,5 +1,4 @@
 #![no_std]
-#![feature(const_fn)]
 
 #[macro_use]
 mod macros;
@@ -7,9 +6,9 @@ mod macros;
 pub use embedded_hal as hal;
 
 #[cfg(feature="stm32f103")]
-pub use stm32f103xx_hal::{
+pub use stm32f1xx_hal::{
     self as device_hal,
-    stm32f103xx as device
+    device
 };
 
 pub mod rcc;

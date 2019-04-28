@@ -15,7 +15,7 @@ pub enum Osc {
 }
 
 /* USBPRE: USB prescaler (RCC_CFGR[22]) */
-pub use crate::device::rcc::cfgr::OTGFSPREW as UsbPre;
+pub use crate::device::rcc::cfgr::USBPREW as UsbPre;
 /* PLLMUL: PLL multiplication factor */
 pub use crate::device::rcc::cfgr::PLLMULW as PllMul;
 /* PLLXTPRE: HSE divider for PLL entry */
@@ -25,7 +25,7 @@ pub use crate::device::rcc::cfgr::PLLSRCW as PllSrc;
 /* ADCPRE: ADC prescaler */
 pub use crate::device::rcc::cfgr::ADCPREW as AdcPre;
 /* PPRE2: APB high-speed prescaler (APB2) */
-pub use crate::device::rcc::cfgr::PPRE2W as PPre2;
+pub use crate::device::rcc::cfgr::PPRE1W as PPre2;
 /* PPRE1: APB low-speed prescaler (APB1) */
 pub use crate::device::rcc::cfgr::PPRE1W as PPre1;
 /* HPRE: AHB prescaler */
@@ -546,7 +546,7 @@ impl RccF1Ext for RCC {
 
     fn set_usbpre(&mut self, usbpre: UsbPre) {
         self.cfgr     .modify(|_,w| w
-            .otgfspre()   .variant(usbpre)
+            .usbpre()   .variant(usbpre)
         );
     }
 
@@ -611,10 +611,10 @@ impl RccSetup for RCC {
          * Set prescalers for AHB, ADC, ABP1, ABP2.
          * Do this before touching the PLL (TODO: why?).
          */
-        self.set_hpre(HPre::NODIV);   /* Set. 64MHz Max. 72MHz */
+        self.set_hpre(HPre::DIV1);   /* Set. 64MHz Max. 72MHz */
         self.set_adcpre(AdcPre::DIV8); /* Set.  8MHz Max. 14MHz */
         self.set_ppre1(PPre1::DIV2);    /* Set. 32MHz Max. 36MHz */
-        self.set_ppre2(PPre2::NODIV);   /* Set. 64MHz Max. 72MHz */
+        self.set_ppre2(PPre2::DIV1);   /* Set. 64MHz Max. 72MHz */
 
         /*
          * Sysclk is running with 64MHz -> 2 waitstates.
@@ -631,7 +631,7 @@ impl RccSetup for RCC {
         self.set_pll_multiplication_factor(PllMul::MUL16);
 
         /* Select HSI/2 as PLL source. */
-        self.set_pll_source(PllSrc::INTERNAL);
+        self.set_pll_source(PllSrc::HSI_DIV2);
 
         /* Enable PLL oscillator and wait for it to stabilize. */
         self.osc_on(Osc::PLL);
@@ -660,11 +660,11 @@ impl RccSetup for RCC {
          * Set prescalers for AHB, ADC, ABP1, ABP2.
          * Do this before touching the PLL (TODO: why?).
          */
-        self.set_hpre(HPre::NODIV);    /*Set.48MHz Max.72MHz */
+        self.set_hpre(HPre::DIV1);    /*Set.48MHz Max.72MHz */
         self.set_adcpre(AdcPre::DIV8);    /*Set. 6MHz Max.14MHz */
         self.set_ppre1(PPre1::DIV2);    /*Set.24MHz Max.36MHz */
-        self.set_ppre2(PPre2::NODIV);    /*Set.48MHz Max.72MHz */
-        self.set_usbpre(UsbPre::NODIV);  /*Set.48MHz Max.48MHz */
+        self.set_ppre2(PPre2::DIV1);    /*Set.48MHz Max.72MHz */
+        self.set_usbpre(UsbPre::DIV1);  /*Set.48MHz Max.48MHz */
 
         /*
          * Sysclk runs with 48MHz -> 1 waitstates.
@@ -681,7 +681,7 @@ impl RccSetup for RCC {
         self.set_pll_multiplication_factor(PllMul::MUL12);
 
         /* Select HSI/2 as PLL source. */
-        self.set_pll_source(PllSrc::INTERNAL);
+        self.set_pll_source(PllSrc::HSI_DIV2);
 
         /* Enable PLL oscillator and wait for it to stabilize. */
         self.osc_on(Osc::PLL);
@@ -710,10 +710,10 @@ impl RccSetup for RCC {
          * Set prescalers for AHB, ADC, ABP1, ABP2.
          * Do this before touching the PLL (TODO: why?).
          */
-        self.set_hpre(HPre::NODIV); /* Set. 24MHz Max. 24MHz */
+        self.set_hpre(HPre::DIV1); /* Set. 24MHz Max. 24MHz */
         self.set_adcpre(AdcPre::DIV2); /* Set. 12MHz Max. 12MHz */
-        self.set_ppre1(PPre1::NODIV); /* Set. 24MHz Max. 24MHz */
-        self.set_ppre2(PPre2::NODIV); /* Set. 24MHz Max. 24MHz */
+        self.set_ppre1(PPre1::DIV1); /* Set. 24MHz Max. 24MHz */
+        self.set_ppre2(PPre2::DIV1); /* Set. 24MHz Max. 24MHz */
 
         /*
          * Sysclk is (will be) running with 24MHz -> 2 waitstates.
@@ -730,7 +730,7 @@ impl RccSetup for RCC {
         self.set_pll_multiplication_factor(PllMul::MUL6);
 
         /* Select HSI/2 as PLL source. */
-        self.set_pll_source(PllSrc::INTERNAL);
+        self.set_pll_source(PllSrc::HSI_DIV2);
 
         /* Enable PLL oscillator and wait for it to stabilize. */
         self.osc_on(Osc::PLL);
@@ -764,10 +764,10 @@ impl RccSetup for RCC {
          * Set prescalers for AHB, ADC, ABP1, ABP2.
          * Do this before touching the PLL (TODO: why?).
          */
-        self.set_hpre(HPre::NODIV);    /* Set. 24MHz Max. 72MHz */
+        self.set_hpre(HPre::DIV1);    /* Set. 24MHz Max. 72MHz */
         self.set_adcpre(AdcPre::DIV2);  /* Set. 12MHz Max. 14MHz */
-        self.set_ppre1(PPre1::NODIV);    /* Set. 24MHz Max. 36MHz */
-        self.set_ppre2(PPre2::NODIV);    /* Set. 24MHz Max. 72MHz */
+        self.set_ppre1(PPre1::DIV1);    /* Set. 24MHz Max. 36MHz */
+        self.set_ppre2(PPre2::DIV1);    /* Set. 24MHz Max. 72MHz */
 
         /*
          * Sysclk runs with 24MHz -> 0 waitstates.
@@ -784,13 +784,13 @@ impl RccSetup for RCC {
         self.set_pll_multiplication_factor(PllMul::MUL3);
 
         /* Select HSE as PLL source. */
-        self.set_pll_source(PllSrc::EXTERNAL);
+        self.set_pll_source(PllSrc::HSE_DIV_PREDIV);
 
         /*
          * External frequency undivided before entering PLL
          * (only valid/needed for HSE).
          */
-        self.set_pllxtpre(PllXtPre::NODIV);
+        self.set_pllxtpre(PllXtPre::DIV1);
 
         /* Enable PLL oscillator and wait for it to stabilize. */
         self.osc_on(Osc::PLL);
@@ -824,10 +824,10 @@ impl RccSetup for RCC {
          * Set prescalers for AHB, ADC, ABP1, ABP2.
          * Do this before touching the PLL (TODO: why?).
          */
-        self.set_hpre(HPre::NODIV);    /* Set. 72MHz Max. 72MHz */
+        self.set_hpre(HPre::DIV1);    /* Set. 72MHz Max. 72MHz */
         self.set_adcpre(AdcPre::DIV8);  /* Set.  9MHz Max. 14MHz */
         self.set_ppre1(PPre1::DIV2);     /* Set. 36MHz Max. 36MHz */
-        self.set_ppre2(PPre2::NODIV);    /* Set. 72MHz Max. 72MHz */
+        self.set_ppre2(PPre2::DIV1);    /* Set. 72MHz Max. 72MHz */
 
         /*
          * Sysclk runs with 72MHz -> 2 waitstates.
@@ -844,13 +844,13 @@ impl RccSetup for RCC {
         self.set_pll_multiplication_factor(PllMul::MUL9);
 
         /* Select HSE as PLL source. */
-        self.set_pll_source(PllSrc::EXTERNAL);
+        self.set_pll_source(PllSrc::HSE_DIV_PREDIV);
 
         /*
          * External frequency undivided before entering PLL
          * (only valid/needed for HSE).
          */
-        self.set_pllxtpre(PllXtPre::NODIV);
+        self.set_pllxtpre(PllXtPre::DIV1);
 
         /* Enable PLL oscillator and wait for it to stabilize. */
         self.osc_on(Osc::PLL);
@@ -884,10 +884,10 @@ impl RccSetup for RCC {
          * Set prescalers for AHB, ADC, ABP1, ABP2.
          * Do this before touching the PLL (TODO: why?).
          */
-        self.set_hpre(HPre::NODIV);    /* Set. 72MHz Max. 72MHz */
+        self.set_hpre(HPre::DIV1);    /* Set. 72MHz Max. 72MHz */
         self.set_adcpre(AdcPre::DIV6);  /* Set. 12MHz Max. 14MHz */
         self.set_ppre1(PPre1::DIV2);     /* Set. 36MHz Max. 36MHz */
-        self.set_ppre2(PPre2::NODIV);    /* Set. 72MHz Max. 72MHz */
+        self.set_ppre2(PPre2::DIV1);    /* Set. 72MHz Max. 72MHz */
 
         /*
          * Sysclk runs with 72MHz -> 2 waitstates.
@@ -904,13 +904,13 @@ impl RccSetup for RCC {
         self.set_pll_multiplication_factor(PllMul::MUL6);
 
         /* Select HSI as PLL source. */
-        self.set_pll_source(PllSrc::EXTERNAL);
+        self.set_pll_source(PllSrc::HSE_DIV_PREDIV);
 
         /*
          * Divide external frequency by 2 before entering PLL
          * (only valid/needed for HSE).
          */
-        self.set_pllxtpre(PllXtPre::NODIV);
+        self.set_pllxtpre(PllXtPre::DIV1);
 
         /* Enable PLL oscillator and wait for it to stabilize. */
         self.osc_on(Osc::PLL);
@@ -944,10 +944,10 @@ impl RccSetup for RCC {
          * Set prescalers for AHB, ADC, ABP1, ABP2.
          * Do this before touching the PLL (TODO: why?).
          */
-        self.set_hpre(HPre::NODIV);    /* Set. 72MHz Max. 72MHz */
+        self.set_hpre(HPre::DIV1);    /* Set. 72MHz Max. 72MHz */
         self.set_adcpre(AdcPre::DIV6);  /* Set. 12MHz Max. 14MHz */
         self.set_ppre1(PPre1::DIV2);     /* Set. 36MHz Max. 36MHz */
-        self.set_ppre2(PPre2::NODIV);    /* Set. 72MHz Max. 72MHz */
+        self.set_ppre2(PPre2::DIV1);    /* Set. 72MHz Max. 72MHz */
 
         /*
          * Sysclk runs with 72MHz -> 2 waitstates.
@@ -964,7 +964,7 @@ impl RccSetup for RCC {
         self.set_pll_multiplication_factor(PllMul::MUL9);
 
         /* Select HSI as PLL source. */
-        self.set_pll_source(PllSrc::EXTERNAL);
+        self.set_pll_source(PllSrc::HSE_DIV_PREDIV);
 
         /*
          * Divide external frequency by 2 before entering PLL

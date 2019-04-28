@@ -263,13 +263,14 @@ macro_rules! impl_i2c {
             /* Datasheet: always keep 1 by software. */
             self.oar1     .modify(|r,w| unsafe { w //????
                 .bits( r.bits() | (1 << 14) )
-                .add7()   .bits( slave )
+                .add()   .bits( (slave << 1) as u16 )
             });
         }
 
         fn set_own_10bit_slave_address(&mut self, slave : u16) {
             self.oar1     .modify(|r,w| unsafe { w //????
-                .bits( r.bits() | (slave as u32) | (1 << 14) )
+                .bits( r.bits() | (1 << 14) )
+                .add()   .bits( slave )
                 .addmode()   .set_bit( )
             });
         }

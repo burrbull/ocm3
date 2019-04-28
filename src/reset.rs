@@ -24,7 +24,7 @@ macro_rules! impl_reset {
     )
 }
 
-use crate::device::CAN;
+use crate::device::CAN1;
 use crate::device::{I2C1,I2C2};
 use crate::device::{SPI1,SPI2,SPI3};
 use crate::device::{TIM1,
@@ -43,7 +43,7 @@ use crate::device::{TIM1,
                     TIM14};
 
 
-impl_reset!(CAN, rst::CAN1);
+impl_reset!(CAN1, rst::CAN1);
 //impl_reset!(CAN2, rst::CAN2);
 impl_reset!(I2C1, rst::I2C1);
 impl_reset!(I2C2, rst::I2C2);
