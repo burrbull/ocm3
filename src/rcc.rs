@@ -721,7 +721,7 @@ impl RccSetup for RCC {
          * 1WS from 24-48MHz
          * 2WS from 48-72MHz
          */
-        flash.set_ws(FlashLatency::ZERO);
+        flash.set_ws(FlashLatency::WS0);
 
         /*
          * Set the PLL multiplication factor to 6.
@@ -835,7 +835,7 @@ impl RccSetup for RCC {
          * 1WS from 24-48MHz
          * 2WS from 48-72MHz
          */
-        flash.set_ws(FlashLatency::TWO);
+        flash.set_ws(FlashLatency::WS2);
 
         /*
          * Set the PLL multiplication factor to 9.
@@ -895,7 +895,7 @@ impl RccSetup for RCC {
          * 1WS from 24-48MHz
          * 2WS from 48-72MHz
          */
-        flash.set_ws(FlashLatency::TWO);
+        flash.set_ws(FlashLatency::WS2);
 
         /*
          * Set the PLL multiplication factor to 9.
@@ -955,7 +955,7 @@ impl RccSetup for RCC {
          * 1WS from 24-48MHz
          * 2WS from 48-72MHz
          */
-        flash.set_ws(FlashLatency::TWO);
+        flash.set_ws(FlashLatency::WS2);
 
         /*
          * Set the PLL multiplication factor to 9.
@@ -1475,9 +1475,9 @@ impl RccExt for RCC {
     }
 
     fn set_mco(&mut self, mcosrc : Mco) {
-        self.cfgr     .modify(|_,w| unsafe { w
+        self.cfgr     .modify(|_,w| w
             .pllmul() .bits( mcosrc as u8 )
-        });
+        );
     }
 
     fn osc_bypass_enable(&mut self, osc: Osc) {

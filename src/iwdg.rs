@@ -106,16 +106,16 @@ impl IwdgExt for IWDG {
         self.kr    .write(|w| unsafe { w
             .key()   .bits(Key::Unlock as u16)
         });
-        self.pr    .write(|w| unsafe { w
+        self.pr    .write(|w| w
             .pr()   .bits(exponent as u8)
-        });
+        );
         while self.reload_busy() {};
         self.kr    .write(|w| unsafe { w
             .key()   .bits(Key::Unlock as u16)
         });
-        self.rlr    .write(|w| unsafe { w
+        self.rlr    .write(|w| w
             .rl()   .bits((reload & COUNT_MASK) as u16)
-        });
+        );
     }
 
     fn reload_busy(&self) -> bool {

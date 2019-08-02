@@ -398,9 +398,9 @@ macro_rules! dmachannel {
                     }
 
                     fn set_number_of_data(&mut self, number : u16) {
-                        self.ch().ndtr    .write(|w| unsafe { w
+                        self.ch().ndtr    .write(|w| w
                             .ndt()        .bits( number )
-                        });
+                        );
                     }
                 }
             )+

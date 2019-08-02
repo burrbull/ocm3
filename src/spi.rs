@@ -385,9 +385,9 @@ macro_rules! impl_spi_f1 {
 
         fn write(&mut self, data : u16) {
             // Write data (8 or 16 bits, depending on DFF) into DR.
-            self.dr     .write(|w| unsafe { w
+            self.dr     .write(|w| w
                 .dr()   .bits( data )
-            });
+            );
         }
 
         fn send(&mut self, data : u16) {
@@ -395,9 +395,9 @@ macro_rules! impl_spi_f1 {
             while self.sr.read().txe().bit_is_clear() {}
 
             // Write data (8 or 16 bits, depending on DFF) into DR.
-            self.dr     .write(|w| unsafe { w
+            self.dr     .write(|w| w
                 .dr()   .bits( data )
-            });
+            );
         }
 
         fn read(&mut self) -> u16 {

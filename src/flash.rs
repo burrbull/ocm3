@@ -5,7 +5,7 @@ const FLASH_KEYR_KEY1 : u32 = 0x45670123;
 const FLASH_KEYR_KEY2 : u32 = 0xcdef89ab;
 
 
-pub use crate::device::flash::acr::LATENCYR as FlashLatency;
+pub use crate::device::flash::acr::LATENCYW as FlashLatency;
 
 /* Read protection option byte protection enable key */
 pub const FLASH_RDP_KEY : u16 = 0x00a5;

@@ -263,9 +263,9 @@ macro_rules! impl_usart {
         }
         
         fn set_stopbits(&mut self, stopbits: StopBits) {
-            self.cr2      .modify(|_,w| unsafe { w
+            self.cr2      .modify(|_,w| w
                 .stop()   .bits( stopbits as u8 )
-            });
+            );
         }
         
         fn set_parity(&mut self, parity: Parity) {
@@ -430,9 +430,9 @@ macro_rules! impl_usartf123 {
     impl UsartF123Ext for $USARTx {
         fn send(&mut self, data: u16) {
             /* Send data. */
-            self.dr    .write(|w| unsafe { w
+            self.dr    .write(|w| w
                 .dr() .bits( data )
-            });
+            );
         }
 
         fn recv(&self) -> u16 {

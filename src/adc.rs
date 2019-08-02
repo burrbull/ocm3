@@ -534,9 +534,9 @@ macro_rules! impl_adc {
             self.cr1      .modify(|_, w| w
                 .discen() .set_bit()
             );
-            self.cr1      .modify(|_, w| unsafe { w
+            self.cr1      .modify(|_, w| w
                 .discnum().bits(length-1)
-            });
+            );
         }
         
         #[inline]
@@ -932,18 +932,18 @@ macro_rules! impl_adc_trigger12 {
         
         #[inline]
         fn enable_external_trigger_regular (&mut self, trigger: ExternalTrigger) {
-            self.cr2     .modify(|_, w| unsafe { w
+            self.cr2     .modify(|_, w| w
                 .extsel()  .bits( trigger.into() )
                 .exttrig() .set_bit()
-            });
+            );
         }
         
         #[inline]
         fn enable_external_trigger_injected (&mut self, trigger: ExternalTriggerInjected) {
-            self.cr2     .modify(|_, w| unsafe { w
+            self.cr2     .modify(|_, w| w
                 .jextsel() .bits( trigger.into() )
                 .jexttrig().set_bit()
-            });
+            );
         }
         
     }

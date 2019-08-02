@@ -276,9 +276,9 @@ macro_rules! impl_i2c {
         }
 
         fn set_own_7bit_slave_address_two(&mut self, slave : u8) {
-            self.oar2     .modify(|_,w| unsafe { w
+            self.oar2     .modify(|_,w| w
                 .add2()   .bits( slave )
-            });
+            );
         }
 
         fn enable_dual_addressing_mode(&mut self) {
@@ -324,17 +324,17 @@ macro_rules! impl_i2c {
         }
 
         fn set_trise(&mut self, trise : u8) {
-            self.trise      .write(|w| unsafe { w
+            self.trise      .write(|w| w
                 .trise()    .bits( trise )
-            });
+            );
         }
 
         fn send_7bit_address(&mut self, slave : u8, readwrite : RW) {
             //let bits = ((slave as u16) << 1) as u8 ) | ( readwrite as u8)
             let bits = (slave << 1) | ( readwrite as u8);
-            self.dr     .write(|w| unsafe { w
+            self.dr     .write(|w| w
                 .dr()   .bits( bits )
-            });
+            );
         }
 
         fn get_data(&mut self) -> u8 {

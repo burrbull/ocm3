@@ -344,9 +344,9 @@ impl Channel2 {
     ///
     /// * `dac_trig_src : Trigger2Sel`
     pub fn set_trigger_source(&mut self, dac_trig_src : Trigger2Sel) {
-        self.cr()    .modify(|_,w| unsafe { w
+        self.cr()    .modify(|_,w| w
             .tsel2() .bits( dac_trig_src as u8 )
-        });
+        );
     }
     
 }
@@ -372,10 +372,10 @@ impl ChannelDual {
         let dac = unsafe { &*DAC::ptr() };
         match dac_data_format {
             DataAlign::Right8 => {
-                dac.dhr8rd      .write(|w| unsafe { w
+                dac.dhr8rd      .write(|w| w
                     .dacc1dhr()   .bits ( dac_data1 as u8 )
                     .dacc2dhr()   .bits ( dac_data2 as u8 )
-                });
+                );
             },
             DataAlign::Right12 => {
                 dac.dhr12rd      .write(|w| unsafe { w
@@ -442,10 +442,10 @@ impl ChannelDual {
     /// * `dac_mamp1 : Mamp`
     /// * `dac_mamp2 : Mamp`
     pub fn set_waveform_characteristics(&mut self, dac_mamp1 : Mamp, dac_mamp2 : Mamp) {
-        self.cr()        .modify(|_,w| unsafe { w
+        self.cr()        .modify(|_,w| w
             .mamp1() .bits( dac_mamp1 as u8 )
             .mamp2() .bits( dac_mamp2 as u8 )
-        });
+        );
     }
 }
 
@@ -681,9 +681,9 @@ impl DacChannelSingleExt for Channel1 {
     }
     
     fn set_waveform_characteristics(&mut self, dac_mamp : Mamp) {
-        self.cr()        .modify(|_,w| unsafe { w
+        self.cr()        .modify(|_,w| w
             .mamp1() .bits( dac_mamp as u8 )
-        });
+        );
     }
 }
 
@@ -716,9 +716,9 @@ impl DacChannelSingleExt for Channel2 {
     }
     
     fn set_waveform_characteristics(&mut self, dac_mamp : Mamp) {
-        self.cr()        .modify(|_,w| unsafe { w
+        self.cr()        .modify(|_,w| w
             .mamp2() .bits( dac_mamp as u8 )
-        });
+        );
     }
 }
 
